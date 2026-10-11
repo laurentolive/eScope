@@ -31,6 +31,14 @@ namespace eScope.Analyzer
         // y: samples, period: sampling period in ms
         public static AnalysisResult Analyze(IReadOnlyList<double> y, double period)
         {
+            var r = AnalyzeBasic(y, period);
+            if (y.Count != 0) ComputeFft(y, period, r);
+            return r;
+        }
+
+        // statistics and edges, without the FFT (side panel, refreshed live)
+        public static AnalysisResult AnalyzeBasic(IReadOnlyList<double> y, double period)
+        {
             var r = new AnalysisResult { Samples = y.Count };
             if (y.Count == 0) return r;
 
@@ -50,7 +58,6 @@ namespace eScope.Analyzer
             r.StdDev = Math.Sqrt(Math.Max(0, sum2 / y.Count - r.Mean * r.Mean));
 
             ComputeEdges(y, period, r);
-            ComputeFft(y, period, r);
             return r;
         }
 

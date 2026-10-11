@@ -98,10 +98,7 @@ namespace eScope.Plot
             L.ArrowFillColor = c;
             L.TextBorderColor = c;
 
-            if (Context.DarkMode != 0)
-            {
-                L.TextColor = ScottPlot.Color.FromHex("#d7d7d7");
-            }
+            L.TextColor = Theme.Sc(Theme.Current.Text);
             L.TextBackgroundColor = ScottPlot.Color.FromHex(Data.Color + "80"); // add alpha
 
             L.Text = Data.Name;

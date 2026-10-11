@@ -29,16 +29,16 @@ namespace eScope
         private static readonly JsonSerializerOptions WorkspaceJsonOptions = new() { WriteIndented = true };
         private byte[]? savedHash; // SHA-256 of the workspace file as last loaded/saved, null if none
         private TextBox? renameBox; // in-place editor over a tab while renaming a trace
-        private Button? updateButton; // top right, shown only when a newer release is on GitHub
+        private ToolStripButton? updateButton; // top right, shown only when a newer release is on GitHub
         private List<Release>? releases; // GitHub releases found at startup
 
         public eScope()
         {
             InitializeComponent();
-            this.BackColor = System.Drawing.Color.FromKnownColor(KnownColor.Control);
+            BuildLayout();
+            DpiChanged += (_, _) => UpdateToolbarIcons();
             this.KeyPreview = true;
             this.FormClosing += eScope_FormClosing;
-            tabControl1.MouseDoubleClick += tabControl1_MouseDoubleClick;
             // the recording applies to the current trace: it stays current until the recording stops
             tabControl1.Selecting += (_, e) => { if (bRecord) e.Cancel = true; };
             updateToolStripMenuItem.Click += updateToolStripMenuItem_Click;
@@ -83,7 +83,6 @@ namespace eScope
                 TraceCtrl ctrl = new(data, this);
                 this.tabControl1.Controls.Add(ctrl.tabPage);
                 Traces.Add(ctrl);
-                ResizeTrace(ctrl);
             }
             if (tabControl1.TabCount == 0)
             {
@@ -91,6 +90,9 @@ namespace eScope
                 newTraceToolStripMenuItem_Click(0, e);
             }
             ActivateCurrentTrace();
+            ApplyTheme();
+            // single-key shortcuts need the focus on the plot, not on a side panel list
+            Shown += (_, _) => GetCurrentTrace()?.Plot.GetControl().Focus();
 
             Timer1s.Start();
 
@@ -115,23 +117,17 @@ namespace eScope
                 TraceCtrl? trc = GetCurrentTrace();
                 trc?.Refresh();
                 swPlot.Stop();
+                UpdateTimebase();
 
                 if(Timer1s.ElapsedMilliseconds > 500)
                 {
                     Timer1s.Restart();
                     if (automation?.IsRunning == true) UpdateAutomationLabel(); // "AI: <tool>" back to "AI"
+                    UpdateStatus();
                     if(bRecord)
                     {
-                        if (recordBmpToggle == 1)
-                        {
-                            toolStripButtonRec.Image = Properties.Resources.rec;
-                            recordBmpToggle = 0;
-                        }
-                        else
-                        {
-                            recordBmpToggle = 1;
-                            toolStripButtonRec.Image = Properties.Resources.rec2;
-                        }
+                        recordBmpToggle = 1 - recordBmpToggle;
+                        UpdateToolbarIcons();
                     }
 
                 }
@@ -161,15 +157,16 @@ namespace eScope
         {
             TraceCtrl? ctrl = GetCurrentTrace();
             bRecord = !bRecord;
+            recordBmpToggle = 1;
+            UpdateToolbarIcons();
+            UpdateTabStrip();
             if (bRecord == false)
             {
-                toolStripButtonRec.Image = Properties.Resources.rec;
                 ctrl?.Stop();
                 SetPause();
             }
             else
             {
-                toolStripButtonRec.Image = Properties.Resources.rec2;
                 recordWatch.Restart();
                 RecordCount++;
                 ctrl?.Start();
@@ -275,8 +272,8 @@ namespace eScope
             loadedTrace?.UnLoad();
             loadedTrace = ctrl;
             loadedTrace?.Load();
-            // only the visible trace follows window resizes
-            if (loadedTrace != null) ResizeTrace(loadedTrace);
+            ShowSidePanel(loadedTrace);
+            UpdateTabStrip();
         }
 
         public TraceCtrl? GetCurrentTrace()
@@ -314,8 +311,8 @@ namespace eScope
         {
             //Console.WriteLine($"Key press {keyData}");
 
-            // keys go to the tab rename editor, not to the scope shortcuts
-            if (renameBox != null && renameBox.Focused)
+            // keys go to the text being typed (tab rename, watch expression...), not to the scope shortcuts
+            if (TextInputFocused())
             {
                 return base.ProcessCmdKey(ref msg, keyData);
             }
@@ -438,10 +435,6 @@ namespace eScope
         }
         private void eScope_FormClosing(object sender, FormClosingEventArgs e)
         {
-            TraceCtrl? ctrl = GetCurrentTrace();
-
-            ctrl?.WatchClose();
-
             // Check if the user clicked the close button or if the form is being closed programmatically
             if (e.CloseReason == CloseReason.UserClosing && IsModified())
             {
@@ -541,32 +534,23 @@ namespace eScope
         {
             tabControl1.Controls.Add(ctrl.tabPage);
             Traces.Add(ctrl);
-            ResizeTrace(ctrl);
             tabControl1.SelectedTab = ctrl.tabPage;
             ActivateCurrentTrace();
+            UpdateTabStrip();
         }
         // double-click on a tab: rename the trace in place (Enter or focus loss applies, Escape cancels)
-        private void tabControl1_MouseDoubleClick(object? sender, MouseEventArgs e)
-        {
-            for (int i = 0; i < tabControl1.TabCount && i < Traces.Count; i++)
-            {
-                Rectangle rect = tabControl1.GetTabRect(i);
-                if (rect.Contains(e.Location))
-                {
-                    BeginRenameTrace(Traces[i], rect);
-                    return;
-                }
-            }
-        }
         private void BeginRenameTrace(TraceCtrl trc, Rectangle tabRect)
         {
             EndRenameTrace(false);
             var box = new TextBox
             {
                 Text = trc.Data.Name,
-                Location = PointToClient(tabControl1.PointToScreen(tabRect.Location)),
-                Width = Math.Max(tabRect.Width, 120),
+                Location = PointToClient(tabStrip.PointToScreen(new Point(tabRect.X + this.Px(8), tabRect.Y + this.Px(4)))),
+                Width = Math.Max(tabRect.Width, this.Px(140)),
                 Tag = trc,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Theme.Current.Input,
+                ForeColor = Theme.Current.Text,
             };
             box.KeyDown += (s, e) =>
             {
@@ -689,6 +673,7 @@ namespace eScope
                 newTraceToolStripMenuItem_Click(this, EventArgs.Empty);
             }
             ActivateCurrentTrace();
+            UpdateTabStrip();
         }
         private void exportTraceToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -749,16 +734,6 @@ namespace eScope
             ctrl?.Select();
         }
 
-        private void tabControl1_Resize(object sender, EventArgs e)
-        {
-            TraceCtrl? ctrl = GetCurrentTrace();
-            if (ctrl != null) ResizeTrace(ctrl);
-        }
-        private void ResizeTrace(TraceCtrl ctrl)
-        {
-            ctrl.Resize(this.Width, this.Height - 20); // empiric size of the tab
-        }
-
         private void PlayButton_Click(object sender, EventArgs e)
         {
             TraceCtrl? ctrl = GetCurrentTrace();
@@ -776,15 +751,35 @@ namespace eScope
         {
             TraceCtrl? ctrl = GetCurrentTrace();
             ctrl?.SetPlay();
-            PlayButton.Image = Properties.Resources.pause;
-            playBmpToggle = 1;            
+            playBmpToggle = 1;
+            UpdateToolbarIcons();
         }
         private void SetPause()
         {
             TraceCtrl? ctrl = GetCurrentTrace();
             ctrl?.SetPause();
-            PlayButton.Image = Properties.Resources.play;
-            playBmpToggle = 0;           
+            playBmpToggle = 0;
+            UpdateToolbarIcons();
+        }
+        // transport: "Record" becomes a red "Recording 00:12" with a blinking disc, "Play" a filled "Pause"
+        private void UpdateToolbarIcons()
+        {
+            var p = Theme.Current;
+            int dpi = DeviceDpi;
+            toolStripButtonBegin.Image = Icons.Get(Icons.Begin, p.Text2, dpi);
+            toolStripButtonRewind.Image = Icons.Get(Icons.Rewind, p.Text2, dpi);
+            toolStripButtonForward.Image = Icons.Get(Icons.Forward, p.Text2, dpi);
+            toolStripButtonEnd.Image = Icons.Get(Icons.End, p.Text2, dpi);
+            toolStripButtonRec.Image = Icons.Get(Icons.Record,
+                !bRecord || recordBmpToggle == 1 ? p.Rec : Theme.Blend(p.Rec, p.RecBg, 0.35f), dpi);
+            toolStripButtonRec.Tag = bRecord ? "rec" : "outline";
+            toolStripButtonRec.Text = bRecord ? $"Recording {recordWatch.Elapsed:mm\\:ss}" : "Record";
+            bool playing = playBmpToggle == 1;
+            PlayButton.Image = playing ? Icons.Get(Icons.Pause, p.OnAccent, dpi) : Icons.Get(Icons.Play, p.Text2, dpi);
+            PlayButton.Tag = playing ? "accent" : "outline";
+            PlayButton.Text = playing ? "Pause" : "Play";
+            themeButton.Image = Icons.Get(Theme.IsDark ? Icons.Sun : Icons.Moon, p.Text2, dpi);
+            menuStrip1.Invalidate();
         }
         private void commandMgr_StateChanged(object? sender, EventArgs e)
         {
@@ -813,24 +808,16 @@ namespace eScope
             Release? latest = GitHubReleases.Latest(releases);
             if (IsDisposed || latest == null || !GitHubReleases.IsNewer(latest)) return;
 
-            updateButton = new Button
+            updateButton = new ToolStripButton
             {
                 Text = $"⬆ {latest.Version}",
-                AutoSize = true,
-                AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                FlatStyle = FlatStyle.Flat,
-                ForeColor = Color.SeaGreen,
-                Font = new Font(Font.FontFamily, Font.Size * 0.85f),
-                Cursor = Cursors.Hand,
-                TabStop = false,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Alignment = ToolStripItemAlignment.Right,
+                ForeColor = Theme.Current.Ok,
+                Tag = "outline",
+                ToolTipText = $"eScope {latest.Version} is available (installed {AppVersion})",
             };
-            updateButton.FlatAppearance.BorderColor = Color.SeaGreen;
             updateButton.Click += updateToolStripMenuItem_Click;
-            new ToolTip().SetToolTip(updateButton, $"eScope {latest.Version} is available (installed {AppVersion})");
-            Controls.Add(updateButton);
-            updateButton.Location = new Point(ClientSize.Width - updateButton.Width - 6, (menuStrip1.Height - updateButton.Height) / 2 + 1);
-            updateButton.BringToFront();
+            menuStrip1.Items.Add(updateButton);
         }
 
         private void updateToolStripMenuItem_Click(object? sender, EventArgs e)

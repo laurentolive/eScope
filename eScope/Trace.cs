@@ -1,5 +1,6 @@
 ﻿using eScope.Command;
 using eScope.Plot;
+using eScope.UI;
 using System.IO.Compression;
 
 namespace eScope
@@ -131,7 +132,8 @@ namespace eScope
 
         public eScope Scope { get; set; }
         public eScopePlot Plot { get; set; }
-        public int DarkMode{ get { return Data.DarkMode; } }
+        public int DarkMode => Theme.IsDark ? 1 : 0; // display preference of the user (Data.DarkMode is legacy)
+        public SidePanel Side { get; private set; }
 
         public TabPage tabPage = new();
 
@@ -143,8 +145,6 @@ namespace eScope
         public ToolStripMenuItem addHorizintalDeltaMenuItem = new();
         public ToolStripMenuItem addAnnotationMenuItem = new();
         public ToolStripMenuItem addDataMarkerMenuItem = new();
-
-        private Watch.View? _watchForm = null;
 
         public TraceCtrl(Trace data, eScope scope)
         {
@@ -166,6 +166,7 @@ namespace eScope
         private void Create(eScope scope)
         {
             Scope = scope;
+            Side = new SidePanel(this) { Dock = DockStyle.Fill };
             Plot = new eScopePlot(this);
 
             // Initialize factory
@@ -228,8 +229,8 @@ namespace eScope
             tabPage.Margin = new System.Windows.Forms.Padding(0);
             tabPage.TabIndex = 0;
             tabPage.Text = Data.Name;
-            tabPage.UseVisualStyleBackColor = true;
-            tabPage.BackColor = Color.FromKnownColor(KnownColor.Control);
+            tabPage.UseVisualStyleBackColor = false;
+            tabPage.BackColor = Theme.Current.Surface;
             tabPage.Controls.Add(Plot.GetControl());
             tabPage.ContextMenuStrip = ContextMenu;   
         }
@@ -281,6 +282,7 @@ namespace eScope
             item.ShortcutKeyDisplayString = shortcut;
             item.Click += handler;
         }
+        public void AddChannel() => menuChannelsNew_Click(null, EventArgs.Empty);
         public void AddTimeMarker() => addVerticalMarkerMenuItem_Click(null, EventArgs.Empty);
         public void AddDataMarker() => addDataMarkerMenuItem_Click(null, EventArgs.Empty);
         public void AddTimeDelta() => addTimeDeltaToolStripMenuItem_Click(null, EventArgs.Empty);
@@ -316,6 +318,7 @@ namespace eScope
             Data.Name = name;
             tabPage.Name = name;
             tabPage.Text = name;
+            Scope.UpdateTabStrip();
         }
         public void UpdateMarkers()
         {
@@ -426,11 +429,11 @@ namespace eScope
                 _ => throw new InvalidOperationException("Unknown type")
             };
         }
-        public void Resize(int width, int height)
+        public void ApplyTheme()
         {
-            tabPage.Width = width;
-            tabPage.Height = height;
-            Plot.Resize(width, height);
+            tabPage.BackColor = Theme.Current.Surface;
+            Plot.ApplyTheme();
+            Side.ApplyTheme();
         }
         public void Load()
         {
@@ -576,6 +579,7 @@ namespace eScope
                     c.Update();
             }
             Plot.Refresh();
+            Side.Tick();
         }
         public void XGridIncrease()
         {
@@ -616,24 +620,10 @@ namespace eScope
                 }
             }
         }
+        // the watch is a section of the side panel
         public void WatchShow(List<DeviceCtrl> devices)
         {
-
-            if (_watchForm == null || _watchForm.IsDisposed)
-            {
-                _watchForm = new Watch.View(Data.Watches, devices);
-                _watchForm.FormClosed += (s, e) => _watchForm = null;
-                _watchForm.Show();
-            }
-            else
-            {
-                _watchForm.BringToFront();  // déjà ouvert, ramène au premier plan
-            }
-        }
-
-        public void WatchClose()
-        {
-            _watchForm?.Close();
+            Side.FocusWatch();
         }
 
         // --- File operations ---
@@ -732,33 +722,30 @@ namespace eScope
             }
             return maxRows;
         }
-        // snapshot of the tab as displayed: plot + WinForms legend
+        // snapshot as displayed: side panel (channels, markers, measures) + plot
         public void ExportPng(string path) => File.WriteAllBytes(path, RenderPng());
 
         public byte[] RenderPng()
         {
-            using var bmp = new Bitmap(tabPage.ClientSize.Width, tabPage.ClientSize.Height);
+            var fp = Plot.GetFormsPlot();
+            bool side = Side.Parent != null && Side.Width > 0 && Side.Height > 0;
+            int sideWidth = side ? Side.Width : 0;
+            int height = Math.Max(fp.Height, side ? Side.Height : 0);
+            using var bmp = new Bitmap(Math.Max(1, sideWidth + fp.Width), Math.Max(1, height));
             using (var g = Graphics.FromImage(bmp))
             {
-                g.Clear(tabPage.BackColor);
-
+                g.Clear(Theme.Current.Surface);
                 // render the plot through ScottPlot: DrawToBitmap is not reliable on the Skia control
-                var fp = Plot.GetFormsPlot();
                 if (fp.Width > 0 && fp.Height > 0)
                 {
                     byte[] png = fp.Plot.GetImage(fp.Width, fp.Height).GetImageBytes(ScottPlot.ImageFormat.Png);
                     using var ms = new MemoryStream(png);
                     using var plotImg = Image.FromStream(ms);
-                    g.DrawImage(plotImg, fp.Bounds);
+                    g.DrawImage(plotImg, sideWidth, 0, fp.Width, fp.Height);
                 }
             }
-            // remaining controls (legend, timebase), back to front so the z-order is kept
-            for (int i = tabPage.Controls.Count - 1; i >= 0; i--)
-            {
-                Control c = tabPage.Controls[i];
-                if (c == Plot.GetControl() || !c.Visible || c.Width <= 0 || c.Height <= 0) continue;
-                c.DrawToBitmap(bmp, c.Bounds);
-            }
+            if (side)
+                Side.DrawToBitmap(bmp, new Rectangle(0, 0, Side.Width, Side.Height));
             using var output = new MemoryStream();
             bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png);
             return output.ToArray();
@@ -766,11 +753,12 @@ namespace eScope
         // detach from devices and floating windows before the tab is dropped
         public void Close()
         {
-            WatchClose();
             foreach (var c in GetSignalList())
             {
                 c.Remove();
             }
+            Side.CloseWatch();
+            Side.Dispose();
         }
         // channels pointing to a device that is not configured in this workspace
         public List<string> MissingDevices(IEnumerable<string> knownDevices)

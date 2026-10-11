@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(eScope));
-            tabControl1 = new TabControl();
+            tabControl1 = new UI.TabHost();
             filesToolStripMenuItem1 = new ToolStripMenuItem();
             newTraceToolStripMenuItem = new ToolStripMenuItem();
             openTraceToolStripMenuItem = new ToolStripMenuItem();
@@ -92,7 +92,6 @@
             tabControl1.Size = new Size(914, 570);
             tabControl1.TabIndex = 0;
             tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
-            tabControl1.Resize += tabControl1_Resize;
             // 
             // filesToolStripMenuItem1
             // 
@@ -459,7 +458,7 @@
 
         #endregion
 
-        private TabControl tabControl1;
+        private UI.TabHost tabControl1;
         private ToolStripMenuItem filesToolStripMenuItem1;
         private ToolStripMenuItem editToolStripMenuItem1;
         private ToolStripMenuItem devicesMenu;

@@ -1,6 +1,6 @@
 namespace eScope.Watch
 {
-    public class View : Form
+    public class View : Form, IThemed
     {
         private DataGridView Grid;
         private System.Windows.Forms.Timer updateTimer;
@@ -109,8 +109,44 @@ namespace eScope.Watch
 
         // --- Selection look ---
 
-        static readonly Color RowHighlight = Blend(SystemColors.Highlight, SystemColors.Window, 0.20);
-        static readonly Color CellHighlight = Blend(SystemColors.Highlight, SystemColors.Window, 0.40);
+        static Color RowHighlight => Blend(Theme.Current.Accent, Theme.Current.Surface, 0.20);
+        static Color CellHighlight => Blend(Theme.Current.Accent, Theme.Current.Surface, 0.40);
+
+        // grid colors from the theme (window or side panel of the main window)
+        public void ApplyTheme()
+        {
+            var p = Theme.Current;
+            BackColor = p.Surface;
+            ThemeApplier.StyleGrid(Grid);
+            Grid.Font = Theme.Mono(9);
+            Grid.ColumnHeadersDefaultCellStyle.Font = Theme.Ui(8.5f);
+            Grid.DefaultCellStyle.SelectionBackColor = RowHighlight;
+            Grid.DefaultCellStyle.SelectionForeColor = Grid.DefaultCellStyle.ForeColor;
+            // rows styled under the previous theme follow the grid again
+            foreach (DataGridViewRow row in Grid.Rows)
+            {
+                row.DefaultCellStyle.ForeColor = Color.Empty;
+                row.DefaultCellStyle.SelectionForeColor = Color.Empty;
+            }
+            if (Grid.Rows.Count > 0) RestoreAddRow();
+            Grid.Invalidate();
+        }
+
+        // narrow side panel: no address column
+        public void SetCompact(bool compact) => Grid.Columns[AddressColumn].Visible = !compact;
+
+        // embedded in the side panel: values read only while the panel is shown
+        public void SetActive(bool active) => updateTimer.Enabled = active;
+
+        public void FocusGrid(bool add)
+        {
+            Grid.Focus();
+            if (add && Grid.Rows.Count > 0)
+            {
+                Grid.CurrentCell = Grid.Rows[Grid.Rows.Count - 1].Cells[ExpressionColumn];
+                EditCell(Grid.Rows.Count - 1, ExpressionColumn);
+            }
+        }
         static Color Blend(Color c, Color background, double amount)
         {
             int Mix(int a, int b) => (int)Math.Round(a * amount + b * (1 - amount));
@@ -351,7 +387,7 @@ namespace eScope.Watch
             {
                 Grid.CancelEdit(); // an invalid expression being typed must not block the closing
                 Grid.EndEdit();
-                Close();
+                if (TopLevel) Close();
                 return true;
             }
             if (Grid.IsCurrentCellInEditMode && completion.ProcessKey(keyData))
@@ -538,8 +574,8 @@ namespace eScope.Watch
         {
             var row = Grid.Rows[Grid.Rows.Count - 1];
             row.DefaultCellStyle.Font = new Font(Grid.Font, FontStyle.Italic);
-            row.DefaultCellStyle.ForeColor = Color.Gray;
-            row.DefaultCellStyle.SelectionForeColor = Color.Gray;
+            row.DefaultCellStyle.ForeColor = Theme.Current.Faint;
+            row.DefaultCellStyle.SelectionForeColor = Theme.Current.Faint;
             row.Cells[ExpressionColumn].Value = AddWatchText;
         }
     }

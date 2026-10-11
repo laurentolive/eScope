@@ -212,6 +212,15 @@ namespace eScope.Plot
 
             return new DataPoint(x, y, -1);
         }
+        // theme changed: dark colors are lifted in dark mode
+        public void ApplyThemeColor()
+        {
+            if (s == null) return;
+            var c = Theme.TraceColor(SignalBase.Color);
+            s.Color = c;
+            s.LineColor = c;
+            if (A != null) A.ArrowLineColor = c;
+        }
         public virtual ScottPlot.Color GetColor()
         {
             return s.Color;
@@ -593,8 +602,8 @@ namespace eScope.Plot
             else
                 s.Data.Period = SignalBase.SamplingTime > 0 ? SignalBase.SamplingTime : 2;
             s.LineWidth = 2;
-            s.Color = ScottPlot.Color.FromHex(SignalBase.Color);
-            s.LineColor = ScottPlot.Color.FromHex(SignalBase.Color);
+            s.Color = Theme.TraceColor(SignalBase.Color);
+            s.LineColor = Theme.TraceColor(SignalBase.Color);
             s.MarkerLineWidth = 2;
             s.MarkerSize = 3;
             s.Axes.YAxis.IsVisible = false;
@@ -625,7 +634,7 @@ namespace eScope.Plot
             ATip = new Coordinates(s.Axes.XAxis.Min, s.Data.YOffset);
             A.Base = ABase;
             A.Tip = ATip;
-            A.ArrowLineColor = ScottPlot.Color.FromHex(SignalBase.Color);
+            A.ArrowLineColor = Theme.TraceColor(SignalBase.Color);
 
             SetVisibility(SignalBase.IsVisible);
             if (Display != SignalBase.Display)

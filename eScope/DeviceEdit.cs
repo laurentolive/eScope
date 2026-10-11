@@ -25,6 +25,7 @@ namespace eScope
         {
             Dev = device;
             InitializeComponent();
+            BuildLayout();
             KeyPreview = true;
             TextBoxName.Text = device.Name;
 
@@ -99,7 +100,7 @@ namespace eScope
             // Configured path if it exists here, otherwise the default one (bundled gdb, then PATH)
             textBoxGdbPath.Text = GdbLocator.Resolve(device.GdbFilePath) ?? device.GdbFilePath;
             textBoxGdbPath.PlaceholderText = "no gdb found (bundled or PATH)";
-            if (device.SymbolType == "Map")
+            if (string.Equals(device.SymbolType, "map", StringComparison.OrdinalIgnoreCase))
             {
                 radioMap.Checked = true;
                 radioGDB.Checked = false;
@@ -124,22 +125,52 @@ namespace eScope
 
         private void radioSymbolUpdate()
         {
-            if (radioMap.Checked)
-            {
-                textBoxGdbPath.Visible = false;
-                buttonGdbPath.Visible = false;
-                labelGDBPath.Visible = false;
-                textBoxMapRegex.Visible = true;
-                labelMapRegex.Visible = true;
-            }
-            else
-            {
-                textBoxMapRegex.Visible = false;
-                labelMapRegex.Visible = false;
-                textBoxGdbPath.Visible = true;
-                buttonGdbPath.Visible = true;
-                labelGDBPath.Visible = true;
-            }
+            panelMapRegex.Visible = radioMap.Checked;
+            panelGdbPath.Visible = !radioMap.Checked;
+        }
+
+        readonly Panel panelMapRegex = new();
+        readonly Panel panelGdbPath = new();
+
+        // common dialog layout: one column, the rows of the link type and of the symbol source shown with it
+        void BuildLayout()
+        {
+            labelSamplingTime.Text = "Sampling (ms)";
+            labelV1Channels.Text = "Channels";
+            labelV1DataSize.Text = "Data size (B)";
+            label8.Text = "Symbol file";
+            labelGDBPath.Text = "GDB path";
+            buttonBrowse.AutoSize = buttonGdbPath.AutoSize = buttonRefreshProbes.AutoSize = true;
+
+            var L = new UI.DialogLayout(this);
+            var c = L.Column()
+                .Row(label1, TextBoxName)
+                .Section("Protocol")
+                .Row(label9, comboBoxProtocol)
+                .Row(labelSamplingTime, textBoxSamplingTime);
+            c.Group(panelV1)
+                .Row(labelV1Channels, textBoxV1Channels)
+                .Row(labelV1DataSize, textBoxV1DataSize);
+            c.Section("Link")
+                .Options(new Label { Text = "Type" }, radioButtonSerial, radioButtonTCP, radioButtonRTT);
+            c.Group(panelSerial)
+                .Row(label3, comboBoxPort)
+                .Row(label4, textBoxBaudrate);
+            c.Group(panelTCP)
+                .Row(label6, textBoxAddress)
+                .Row(label7, textBoxTcpPort);
+            c.Group(panelRTT)
+                .Row(labelRttTarget, comboBoxRttTarget)
+                .Row(labelRttProbe, comboBoxRttProbe, buttonRefreshProbes)
+                .Row(labelRttHost, textBoxRttHost)
+                .Row(labelRttPort, textBoxRttPort);
+            c.Section("Symbols")
+                .Options(new Label { Text = "Source" }, radioMap, radioGDB)
+                .Row(label8, textBoxSymbol, buttonBrowse);
+            c.Group(panelMapRegex).Row(labelMapRegex, textBoxMapRegex);
+            c.Group(panelGdbPath).Row(labelGDBPath, textBoxGdbPath, buttonGdbPath);
+            L.Footer(buttonOK, buttonCancel);
+            L.Done();
         }
 
         private void buttonBrowse_Click(object sender, EventArgs e)
@@ -171,11 +202,11 @@ namespace eScope
                 if (int.TryParse(textBoxBaudrate.Text, out int baudrate) == false)
                 {
                     valid = false;
-                    textBoxBaudrate.BackColor = Color.Salmon;
+                    textBoxBaudrate.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    textBoxBaudrate.BackColor = Color.White;
+                    textBoxBaudrate.BackColor = Theme.FieldBack(true);
                 }
                 comText = comType + ":" + comboBoxPort.Text + "," + baudrate.ToString() + ",8,N,1,1";
             }
@@ -184,21 +215,21 @@ namespace eScope
                 if (string.IsNullOrWhiteSpace(textBoxAddress.Text))
                 {
                     valid = false;
-                    textBoxAddress.BackColor = Color.Salmon;
+                    textBoxAddress.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    textBoxAddress.BackColor = Color.White;
+                    textBoxAddress.BackColor = Theme.FieldBack(true);
                 }
 
                 if (!int.TryParse(textBoxTcpPort.Text, out _))
                 {
                     valid = false;
-                    textBoxTcpPort.BackColor = Color.Salmon;
+                    textBoxTcpPort.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    textBoxTcpPort.BackColor = Color.White;
+                    textBoxTcpPort.BackColor = Theme.FieldBack(true);
                 }
             }
             else if (radioButtonRTT.Checked)
@@ -207,21 +238,21 @@ namespace eScope
                 if (string.IsNullOrEmpty(target))
                 {
                     valid = false;
-                    comboBoxRttTarget.BackColor = Color.Salmon;
+                    comboBoxRttTarget.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    comboBoxRttTarget.BackColor = Color.White;
+                    comboBoxRttTarget.BackColor = Theme.FieldBack(true);
                 }
 
                 if (!int.TryParse(textBoxRttPort.Text, out _))
                 {
                     valid = false;
-                    textBoxRttPort.BackColor = Color.Salmon;
+                    textBoxRttPort.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    textBoxRttPort.BackColor = Color.White;
+                    textBoxRttPort.BackColor = Theme.FieldBack(true);
                 }
 
             }
@@ -233,22 +264,22 @@ namespace eScope
             if (File.Exists(textBoxSymbol.Text) == false)
             {
                 valid = false;
-                textBoxSymbol.BackColor = Color.Salmon;
+                textBoxSymbol.BackColor = Theme.FieldBack(false);
             }
             else
             {
-                textBoxSymbol.BackColor = Color.White;
+                textBoxSymbol.BackColor = Theme.FieldBack(true);
             }
 
             // Empty path = auto (gdb bundled in tools\gdb, then PATH)
             if (radioGDB.Checked && GdbLocator.Resolve(textBoxGdbPath.Text) == null)
             {
                 valid = false;
-                textBoxGdbPath.BackColor = Color.Salmon;
+                textBoxGdbPath.BackColor = Theme.FieldBack(false);
             }
             else
             {
-                textBoxGdbPath.BackColor = Color.White;
+                textBoxGdbPath.BackColor = Theme.FieldBack(true);
             }
 
             if (radioMap.Checked == true)
@@ -258,11 +289,11 @@ namespace eScope
                 if (IsValidRegex(textBoxMapRegex.Text) == false)
                 {
                     valid = false;
-                    textBoxMapRegex.BackColor = Color.Salmon;
+                    textBoxMapRegex.BackColor = Theme.FieldBack(false);
                 }
                 else
                 {
-                    textBoxMapRegex.BackColor = Color.White;
+                    textBoxMapRegex.BackColor = Theme.FieldBack(true);
                 }
             }
             else
@@ -274,11 +305,11 @@ namespace eScope
             bool success = double.TryParse(test, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out dNumber);
             if (success)
             {
-                textBoxSamplingTime.BackColor = Color.White;
+                textBoxSamplingTime.BackColor = Theme.FieldBack(true);
             }
             else
             {
-                textBoxSamplingTime.BackColor = Color.Salmon;
+                textBoxSamplingTime.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
 
@@ -286,19 +317,19 @@ namespace eScope
             {
                 if (!int.TryParse(textBoxV1Channels.Text, out int ch) || ch <= 0)
                 {
-                    textBoxV1Channels.BackColor = Color.Salmon;
+                    textBoxV1Channels.BackColor = Theme.FieldBack(false);
                     valid = false;
                 }
                 else
-                    textBoxV1Channels.BackColor = Color.White;
+                    textBoxV1Channels.BackColor = Theme.FieldBack(true);
 
                 if (!int.TryParse(textBoxV1DataSize.Text, out int ds) || ds <= 0)
                 {
-                    textBoxV1DataSize.BackColor = Color.Salmon;
+                    textBoxV1DataSize.BackColor = Theme.FieldBack(false);
                     valid = false;
                 }
                 else
-                    textBoxV1DataSize.BackColor = Color.White;
+                    textBoxV1DataSize.BackColor = Theme.FieldBack(true);
             }
 
             return valid;

@@ -60,6 +60,8 @@ There are no automated tests; verification is done by running the application (t
 
 **`Trace.cs`** — Data model for a single plot tab: owns collections of `Channel`, `Marker`, `Delta`, `Annotation` and `Watch.Data` objects. `TraceCtrl` is the controller that bridges data to the plot. A trace can be saved alone as `.etrace` (gzipped JSON).
 
+**`UI/`** — Look of the main window: `Theme` (light / dark palettes, fonts, ToolStrip renderer, icons from Segoe Fluent Icons), `ThemeApplier` (themes every designer form when activated, CBT hook), `SidePanel` (per trace: channels, markers, selection measures, embedded watch), `TraceTabStrip` + `PlotCard` (tabs above the plot), `UiSettings` (per-user `%LOCALAPPDATA%\eScope\ui.json`: dark mode, panel width), `DialogLayout` (common layout of the edit dialogs, built in code over the designer controls: their designer positions are not used). Layout of the main form in `eScope.Layout.cs`.
+
 **`Analyzer/`** — Analysis window on the selection: statistics, frequency / period / duty cycle, FFT.
 
 **`Watch/`** — Floating window that shows live variable values (independent of the plot). With GDB symbols each row is a C expression evaluated again on every refresh.

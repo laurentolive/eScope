@@ -30,12 +30,28 @@ namespace eScope
             Data = data;
             Context = trc;
             InitializeComponent();
+            labelAnnotation.Text = "Text";
+            labelTextPositionX.Text = "X (ms)";
+            labelTextPositionY.Text = "Y";
+            labelTipChannel.Text = "Channel";
+            labelTipPositionX.Text = "X (ms)";
+            var L = new UI.DialogLayout(this);
+            L.Column()
+                .Header(labelAnnotation, TextBoxAnnotation, buttonColor)
+                .Section("Text position")
+                .Row(labelTextPositionX, textBoxTextPositionX)
+                .Row(labelTextPositionY, textBoxTextPositionY)
+                .Section("Arrow tip")
+                .Row(labelTipChannel, comboBoxTipChannel)
+                .Row(labelTipPositionX, textBoxTipPositionX);
+            L.Footer(buttonOK, buttonCancel);
+            L.Done();
             colorDialog1.Color = (Color)ColorTranslator.FromHtml(Data.Color);
             buttonColor.BackColor = (Color)ColorTranslator.FromHtml(Data.Color);
             TextBoxAnnotation.Text = Data.Name;
-            textBoxTextPositionX.Text = Data.TextLocationX.ToString();
-            textBoxTextPositionY.Text = Data.TextLocationY.ToString();
-            textBoxTipPositionX.Text = Data.TipLocationX.ToString();
+            textBoxTextPositionX.Text = Math.Round(Data.TextLocationX, 3).ToString();
+            textBoxTextPositionY.Text = Math.Round(Data.TextLocationY, 3).ToString();
+            textBoxTipPositionX.Text = Math.Round(Data.TipLocationX, 3).ToString();
             var ctrls = Context.GetSignalList();
             string[] names = ctrls.Select(d => d.SignalBase.Name).ToArray();
             comboBoxTipChannel.Items.AddRange(names);
@@ -74,11 +90,11 @@ namespace eScope
             bool success = double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out dNumber);
             if (success)
             {
-                tb.BackColor = Color.White;
+                tb.BackColor = Theme.FieldBack(true);
             }
             else
             {
-                tb.BackColor = Color.Salmon;
+                tb.BackColor = Theme.FieldBack(false);
                 isValid = false;
             }
             return isValid;
@@ -88,12 +104,12 @@ namespace eScope
             bool isValid = true;
             if (Context.Exists(TextBoxAnnotation.Text) &&(TextBoxAnnotation.Text!= Data.Name))
             {
-                TextBoxAnnotation.BackColor = Color.Salmon;
+                TextBoxAnnotation.BackColor = Theme.FieldBack(false);
                 isValid = false;
             }
             else
             {
-                TextBoxAnnotation.BackColor = Color.White;
+                TextBoxAnnotation.BackColor = Theme.FieldBack(true);
             }
 
             isValid &= ValidateNumber(textBoxTextPositionX);

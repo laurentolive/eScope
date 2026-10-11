@@ -5,6 +5,7 @@ namespace eScope.Symbol
     {
         public TextBox textBoxSymbol;
         private ListBox listBoxSymbol;
+        public Control List => listBoxSymbol; // floats over the dialog, under the text box
         public Label labelSymbol;
         List<DeviceCtrl> Devices;
         List<string> Symbols;
@@ -54,6 +55,18 @@ namespace eScope.Symbol
             listBoxSymbol.BringToFront();
 
             UpdateSymbols();
+        }
+        // the list is a child of the form: placed under the text box wherever the layout put it
+        void ShowList()
+        {
+            var form = textBoxSymbol.FindForm();
+            if (form != null && listBoxSymbol.Parent == form)
+            {
+                listBoxSymbol.Location = form.PointToClient(textBoxSymbol.PointToScreen(new Point(0, textBoxSymbol.Height)));
+                listBoxSymbol.Width = textBoxSymbol.Width;
+            }
+            listBoxSymbol.BringToFront();
+            listBoxSymbol.Visible = true;
         }
         public void SetPosition(Point p)
         {
@@ -110,12 +123,12 @@ namespace eScope.Symbol
         {
             if (isSymbolValid(textBoxSymbol.Text))
             {
-                textBoxSymbol.BackColor = Color.White;
+                textBoxSymbol.BackColor = Theme.FieldBack(true);
                 return true;
             }
             else
             {
-                textBoxSymbol.BackColor = Color.Salmon;
+                textBoxSymbol.BackColor = Theme.FieldBack(false);
                 return false;
             }
         }
@@ -132,7 +145,7 @@ namespace eScope.Symbol
                     {
                         listBoxSymbol.Items.Add(ShortenFromLeft(s, 40));
                     }
-                    listBoxSymbol.Visible = true;
+                    ShowList();
                 }
                 else
                 {
@@ -179,7 +192,7 @@ namespace eScope.Symbol
             if (e.KeyCode == Keys.Down)
             {
                 listBoxSymbol.Focus();
-                listBoxSymbol.Visible = true;
+                ShowList();
                 if (listBoxSymbol.Items.Count > 0)
                 {
                     listBoxSymbol.SelectedIndex = 0;

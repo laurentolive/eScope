@@ -15,7 +15,8 @@ namespace eScope
         static int SignalColorIdx = 0;
         static int MarkerColorIdx = 0;
 
-        static List<string> ColorList = new List<string> { "#D00000", "#0000A0", "#007f3F", "#7F007F", "#FF7F00", "#7F3F00", "#F0F000","#7F7F7F", "#FF007F",   "#000000" };
+        // mid-lightness colors, readable on the light and the dark plot background
+        static List<string> ColorList = new List<string> { "#E5484D", "#3B82F6", "#22A06B", "#A855F7", "#F97316", "#0EA5E9", "#D4A72C", "#8B8D98", "#EC4899", "#14B8A6" };
 
         public uint color;
         public ColorRGB()

@@ -28,6 +28,16 @@ namespace eScope
             Data = data;
             Context = trc;
             InitializeComponent();
+            label2.Text = "Start (ms)";
+            label3.Text = "End (ms)";
+            var L = new UI.DialogLayout(this);
+            L.Column()
+                .Header(label1, TextBoxName, buttonColor, checkBoxVisible)
+                .Section("Range")
+                .Row(label2, textBoxX1)
+                .Row(label3, textBoxX2);
+            L.Footer(buttonOK, buttonCancel);
+            L.Done();
             colorDialog1.Color = (Color)ColorTranslator.FromHtml(Data.Color);
             buttonColor.BackColor = (Color)ColorTranslator.FromHtml(Data.Color);
             TextBoxName.Text = Data.Name;
@@ -60,12 +70,12 @@ namespace eScope
             
             if (Context.Exists(TextBoxName.Text) &&(TextBoxName.Text!= Data.Name))
             {
-                TextBoxName.BackColor = Color.Salmon;
+                TextBoxName.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
             else
             {
-                TextBoxName.BackColor = Color.White;
+                TextBoxName.BackColor = Theme.FieldBack(true);
             }
 
             double dNumber;
@@ -74,11 +84,11 @@ namespace eScope
             if (success)
 
             {
-                textBoxX1.BackColor = Color.White;
+                textBoxX1.BackColor = Theme.FieldBack(true);
             }
             else
             {
-                textBoxX1.BackColor = Color.Salmon;
+                textBoxX1.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
 
@@ -86,11 +96,11 @@ namespace eScope
             success = double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out dNumber);
             if (success)
             {
-                textBoxX2.BackColor = Color.White;
+                textBoxX2.BackColor = Theme.FieldBack(true);
             }
             else
             {
-                textBoxX2.BackColor = Color.Salmon;
+                textBoxX2.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
             buttonOK.Enabled = valid;

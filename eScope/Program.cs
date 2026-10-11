@@ -20,6 +20,7 @@ namespace eScope
             //Application.SetCompatibleTextRenderingDefault(false);
 
             ApplicationConfiguration.Initialize();
+            Theme.Initialize(UiSettings.Current.DarkMode);
             Application.Run(new eScope());
         }
     }

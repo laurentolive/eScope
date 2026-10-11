@@ -53,7 +53,7 @@ namespace eScope
             menuStrip1.Items.Insert(menuStrip1.Items.IndexOf(aboutToolStripMenuItem), toolsMenu);
 
             automationLabel.Click += (_, _) => ShowAutomationSettings();
-            toolStrip1.Items.Add(automationLabel);
+            menuStrip1.Items.Add(automationLabel);
 
             // the UI dispatcher needs the window handle
             Shown += (_, _) => automation.Start();

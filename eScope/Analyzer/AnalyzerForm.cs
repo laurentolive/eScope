@@ -212,7 +212,7 @@ namespace eScope.Analyzer
         }
 
         // time base is ms
-        static string FormatTime(double ms)
+        internal static string FormatTime(double ms)
         {
             if (double.IsNaN(ms) || double.IsInfinity(ms)) return "-";
             double a = Math.Abs(ms);
@@ -221,7 +221,7 @@ namespace eScope.Analyzer
             return (ms * 1000).ToString("G5", CultureInfo.InvariantCulture) + " µs";
         }
 
-        static string FormatFreq(double hz)
+        internal static string FormatFreq(double hz)
         {
             if (double.IsNaN(hz) || double.IsInfinity(hz)) return "-";
             if (Math.Abs(hz) >= 1000) return (hz / 1000).ToString("G5", CultureInfo.InvariantCulture) + " kHz";

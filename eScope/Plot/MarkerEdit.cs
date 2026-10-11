@@ -28,6 +28,15 @@ namespace eScope
             Data = data;
             Context = trc;
             InitializeComponent();
+            checkBoxFixed.Text = "Fixed (% of the view)";
+            var L = new UI.DialogLayout(this);
+            L.Column()
+                .Header(label1, TextBoxName, buttonColor, checkBoxVisible)
+                .Section("Position")
+                .Row(label2, textBoxPosition)
+                .Options(null, checkBoxFixed);
+            L.Footer(buttonOK, buttonCancel);
+            L.Done();
             colorDialog1.Color = (Color)ColorTranslator.FromHtml(Data.Color);
             buttonColor.BackColor = (Color)ColorTranslator.FromHtml(Data.Color);
             TextBoxName.Text = Data.Name;
@@ -75,33 +84,33 @@ namespace eScope
                 {
                     if ((dNumber < 0) || (dNumber > 100))
                     {
-                        textBoxPosition.BackColor = Color.Salmon;
+                        textBoxPosition.BackColor = Theme.FieldBack(false);
                         valid = false;
                     }
                     else
                     {
-                        textBoxPosition.BackColor = Color.White;
+                        textBoxPosition.BackColor = Theme.FieldBack(true);
                     }
                 }
                 else
                 {
-                    textBoxPosition.BackColor = Color.White;
+                    textBoxPosition.BackColor = Theme.FieldBack(true);
                 }
             }
             else
             {
-                textBoxPosition.BackColor = Color.Salmon;
+                textBoxPosition.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
 
             if (Context.Exists(TextBoxName.Text) && (TextBoxName.Text != Data.Name))
             {
-                TextBoxName.BackColor = Color.Salmon;
+                TextBoxName.BackColor = Theme.FieldBack(false);
                 valid = false;
             }
             else
             {
-                TextBoxName.BackColor = Color.White;
+                TextBoxName.BackColor = Theme.FieldBack(true);
             }
             buttonOK.Enabled = valid;
         }

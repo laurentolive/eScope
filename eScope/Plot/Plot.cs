@@ -57,25 +57,7 @@ namespace eScope.Plot
             fp = new FormsPlot() { Dock = DockStyle.Fill };
             mousePixel = new(Trc.Data.XWidth / 2, YWidth / 2);
             fp.Plot.HideLegend();
-            if (trc.DarkMode != 0)
-            {
-                fp.Plot.Add.Palette = new ScottPlot.Palettes.Penumbra();
-                // change figure colors
-                fp.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#181818");
-                fp.Plot.DataBackground.Color = ScottPlot.Color.FromHex("#1f1f1f");
-
-                // change axis and grid colors
-                fp.Plot.Axes.Color(ScottPlot.Color.FromHex("#d7d7d7"));
-                fp.Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#404040");
-                // change legend colors
-                fp.Plot.Legend.BackgroundColor = ScottPlot.Color.FromHex("#404040");
-                fp.Plot.Legend.FontColor = ScottPlot.Color.FromHex("#d7d7d7");
-                fp.Plot.Legend.OutlineColor = ScottPlot.Color.FromHex("#d7d7d7");
-            }
-            else
-            {
-                fp.Plot.Add.Palette = new ScottPlot.Palettes.Nord();
-            }
+            fp.Plot.Add.Palette = new ScottPlot.Palettes.Nord();
             trc.Plot = this;
             AddLostIndicator();
             Marker data = new();
@@ -104,16 +86,20 @@ namespace eScope.Plot
 
             fp.Plot.Axes.Left.TickGenerator = tickGenY;
             fp.Plot.Axes.Left.TickLabelStyle.IsVisible = false;
-            fp.Plot.Axes.Left.IsVisible = false;
-            fp.Plot.Axes.Right.IsVisible = false;
+            // side axes without ticks nor labels, kept for a small margin: the first and last time labels are not cut
+            foreach (var axis in new IAxis[] { fp.Plot.Axes.Left, fp.Plot.Axes.Right })
+            {
+                axis.TickLabelStyle.IsVisible = false;
+                axis.MajorTickStyle.Length = 0;
+                axis.MinorTickStyle.Length = 0;
+                axis.Label.Text = string.Empty;
+                axis.MinimumSize = 16;
+            }
             fp.Plot.Axes.Top.IsVisible = false;
 
             fp.Interaction.IsEnabled = false;
             fp.UserInputProcessor.IsEnabled = false;
 
-            fp.Location = new Point(Trc.Data.LegendWidth + SplitterWidth, 0);
-            fp.Width = Trc.Data.LegendWidth;
-            fp.Height = 100;
             fp.MouseMove += MouseMove;
             Trc.tabPage.MouseDown += MouseDownUpdateMenu;
             fp.MouseUp += MouseUp;
@@ -124,19 +110,47 @@ namespace eScope.Plot
             fp.MouseEnter += MouseEnter;
             fp.MouseLeave += MouseLeave;
 
-            fp.Dock = DockStyle.None;
-            fp.Refresh();
-            signalLegend = new PlotLegend(this, Trc.Data.LegendWidth, fp.Height, Trc);
+            fp.Dock = DockStyle.Fill;
+            signalLegend = new PlotLegend(this, Trc);
+            ApplyTheme();
+        }
 
-            // vertical bar between legend and plot, dragged to resize the legend width
-            legendSplitter = new Panel();
-            legendSplitter.Cursor = Cursors.VSplit;
-            legendSplitter.Location = new Point(Trc.Data.LegendWidth, 0);
-            legendSplitter.Size = new Size(SplitterWidth, fp.Height);
-            legendSplitter.MouseDown += LegendSplitter_MouseDown;
-            legendSplitter.MouseMove += LegendSplitter_MouseMove;
-            legendSplitter.MouseUp += LegendSplitter_MouseUp;
-            Trc.tabPage.Controls.Add(legendSplitter);
+        // plot colors from the theme; the curves of dark colors are lifted in dark mode
+        public void ApplyTheme()
+        {
+            var p = Theme.Current;
+            fp.Plot.FigureBackground.Color = Theme.Sc(p.Surface);
+            fp.Plot.DataBackground.Color = Theme.Sc(p.Surface);
+            fp.Plot.Axes.Color(Theme.Sc(p.Muted));
+            foreach (var axis in new IAxis[] { fp.Plot.Axes.Bottom, fp.Plot.Axes.Top, fp.Plot.Axes.Left, fp.Plot.Axes.Right })
+                axis.FrameLineStyle.Color = Theme.Sc(p.GridMajor);
+            fp.Plot.Axes.Bottom.MajorTickStyle.Color = Theme.Sc(p.GridMajor);
+            fp.Plot.Axes.Bottom.MinorTickStyle.Color = Theme.Sc(p.Grid);
+            fp.Plot.Axes.Bottom.TickLabelStyle.FontName = Theme.MonoFamily;
+            fp.Plot.Axes.Bottom.TickLabelStyle.FontSize = 11;
+            fp.Plot.Grid.MajorLineColor = Theme.Sc(p.Grid);
+            fp.Plot.Legend.BackgroundColor = Theme.Sc(p.Popup);
+            fp.Plot.Legend.FontColor = Theme.Sc(p.Text);
+            fp.Plot.Legend.OutlineColor = Theme.Sc(p.Border);
+            if (lostTooltip != null) lostTooltip.LabelFontColor = ScottPlot.Colors.White;
+
+            // watch cursor and selection in the accent color (internal objects, not saved)
+            string accent = ColorTranslator.ToHtml(p.Accent);
+            watchLine.Data.Color = accent;
+            watchLine.Configure();
+            dataSelector.Data.Color = accent;
+            bool selectorVisible = dataSelector.IsVisible();
+            dataSelector.Configure();
+            dataSelector.SetVisibility(selectorVisible);
+
+            foreach (CtrlBase c in Trc.Ctrls)
+            {
+                if (c is ChannelCtrl ch) ch.ApplyThemeColor();
+                else if (c is AnnotationCtrl) c.Configure();
+            }
+            Trc.UpdateMarkers(); // marker labels take the channel colors
+            RefreshReq = true;
+            fp.Refresh();
         }
         // lost data indicator: small vertical bars at the bottom of the plot, on a fixed hidden axis so Y pan / zoom don't move them
         private readonly List<double> lostX = new();
@@ -223,49 +237,6 @@ namespace eScope.Plot
                     lostTooltip.Location = new Coordinates(lostX[nearest], LostIndicatorY);
                 }
             }
-        }
-        private const int SplitterWidth = 4;
-        private const int LegendMinWidth = 60;
-        private const int PlotMinWidth = 200;
-        private Panel legendSplitter;
-        private bool legendSplitterDragging = false;
-        private int lastWidth = 0;
-        private int lastHeight = 0;
-        public void Resize(int width, int height)
-        {
-            lastWidth = width;
-            lastHeight = height;
-            fp.Location = new Point(Trc.Data.LegendWidth + SplitterWidth, 0);
-            fp.Width = width - Trc.Data.LegendWidth - SplitterWidth - 20; //don't why - 20
-            fp.Height = height - 90;
-            legendSplitter.Location = new Point(Trc.Data.LegendWidth, 0);
-            legendSplitter.Height = fp.Height;
-            signalLegend.Resize(Trc.Data.LegendWidth, height);
-        }
-        private void LegendSplitter_MouseDown(object? sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                legendSplitterDragging = true;
-                legendSplitter.Capture = true;
-            }
-        }
-        private void LegendSplitter_MouseMove(object? sender, MouseEventArgs e)
-        {
-            if (!legendSplitterDragging) return;
-            // e.X is relative to the splitter, which sits at x = LegendWidth
-            int width = Trc.Data.LegendWidth + e.X;
-            int max = Math.Max(LegendMinWidth, lastWidth - PlotMinWidth);
-            width = Math.Clamp(width, LegendMinWidth, max);
-            if (width == Trc.Data.LegendWidth) return;
-            Trc.Data.LegendWidth = width; // persisted with the workspace
-            Resize(lastWidth, lastHeight);
-            fp.Refresh();
-        }
-        private void LegendSplitter_MouseUp(object? sender, MouseEventArgs e)
-        {
-            legendSplitterDragging = false;
-            legendSplitter.Capture = false;
         }
         public Control GetControl()
         {
@@ -1112,6 +1083,8 @@ namespace eScope.Plot
         }
         private void MouseDown(object? sender, MouseEventArgs e)
         {
+            // single-key shortcuts: the focus leaves the side panel lists
+            if (sender == fp && !fp.Focused) fp.Focus();
             if(e.Button == MouseButtons.Left)
             {
                 pendingViewCmd = new ChannelCmdView(Trc, "Move");
@@ -1317,9 +1290,11 @@ namespace eScope.Plot
         {
             double grid = Trc.GetXGrid();
             NumericFixedInterval tickGenX = new NumericFixedInterval((int)grid);
-            // display seconds instead of milliseconds when a division is >= 1 s
+            // display seconds instead of milliseconds when a division is >= 1 s; no culture group separator
             if (grid >= 1000)
-                tickGenX.LabelFormatter = ms => $"{ms / 1000:0.###} s";
+                tickGenX.LabelFormatter = ms => (ms / 1000).ToString("0.###", CultureInfo.InvariantCulture) + " s";
+            else
+                tickGenX.LabelFormatter = ms => ms.ToString("0.###", CultureInfo.InvariantCulture);
             fp.Plot.Axes.Bottom.TickGenerator = tickGenX;
         }
         public void ZoomIn()

@@ -27,6 +27,7 @@ namespace eScope
 
             SymbolListBox = new symbolListBox(Controls, Data.Device + "." + Data.Symbol, trc.Scope.Devices, new Point(RemoteDeviceCheckbox.Left, RemoteDeviceCheckbox.Top + RemoteDeviceCheckbox.Height + Ymargin));
             SymbolListBox.OnChanged += SymbolChanged;
+            BuildLayout();
             KeyPreview = true;
             TextBoxName.Text = Data.Name;
             colorDialog1.Color = (Color)ColorTranslator.FromHtml(Data.Color);
@@ -61,6 +62,55 @@ namespace eScope
             InitDone = true;
 
         }
+        // common dialog layout: general, scale and source on the left, the function on the right
+        void BuildLayout()
+        {
+            labelXOffset.Text = "X offset (ms)";
+            labelYOffset.Text = "Y offset";
+            labelYGain.Text = "Y gain (/div)";
+            labelSize.Text = "Size (bits)";
+            foreach (var c in new[] { comboBoxXOffset, comboBoxYOffset, comboBoxYGain })
+                c.Width = this.Px(124);
+            var tip = new ToolTip();
+            foreach (var p in new[] { pictureBoxXOffset, pictureBoxYOffset, pictureBoxYGain })
+            {
+                p.SizeMode = PictureBoxSizeMode.CenterImage;
+                p.Size = new Size(this.Px(24), this.Px(24));
+                p.BorderStyle = BorderStyle.None;
+                tip.SetToolTip(p, "Shared with the channel selected on the right");
+            }
+            buttonCompile.AutoSize = true;
+            labelBuild.AutoSize = true;
+            labelBuild.MaximumSize = new Size(this.Px(300), 0);
+
+            var L = new UI.DialogLayout(this);
+            L.Float(SymbolListBox.List);
+            L.Column()
+                .Header(labelName, TextBoxName, buttonColor, checkBoxVisible)
+                .Row(labelDisplay, comboBoxDisplay)
+                .Row(labelUnit, textBoxUnit)
+                .Section("Scale")
+                .Row(labelXOffset, textBoxXOffset, pictureBoxXOffset, comboBoxXOffset)
+                .Row(labelYOffset, textBoxYOffset, pictureBoxYOffset, comboBoxYOffset)
+                .Row(labelYGain, textBoxYGain, pictureBoxYGain, comboBoxYGain)
+                .Section("Source")
+                .Options(null, RemoteDeviceCheckbox)
+                .Row(SymbolListBox.labelSymbol, SymbolListBox.textBoxSymbol)
+                .Row(labelAddress, textBoxAddress)
+                .Row(labelSize, textBoxSize)
+                .Row(labelPeriod, textBoxPeriod);
+            L.Column(380, 0)
+                .Section("Function")
+                .Options(null, localFunctionCheckbox)
+                .Wide(textBoxScript, 300)
+                .WideRow(labelBuild, buttonCompile);
+            L.Footer(buttonOK, buttonCancel, labelValidation);
+            L.Done(fixedSize: true);
+        }
+
+        // link state of an offset / gain: accent when shared with another channel
+        Image LinkIcon(bool linked) => Icons.Get(Icons.Link, linked ? Theme.Current.Accent : Theme.Current.Faint, DeviceDpi);
+
         void setupComboxLink(linkHolder lh, ComboBox c, PictureBox p)
         {
             var ctrls = Context.GetSignalList();
@@ -92,7 +142,7 @@ namespace eScope
                 }
             }
 
-            p.Image = Properties.Resources.unlink;
+            p.Image = LinkIcon(false);
             c.SelectedIndex = 0;
 
             // select currnet linked signal
@@ -103,7 +153,7 @@ namespace eScope
                 if (index != -1)
                 {
                     c.SelectedIndex = index;
-                    p.Image = Properties.Resources.link;
+                    p.Image = LinkIcon(true);
                 }
             }
         }
@@ -189,68 +239,68 @@ namespace eScope
             // Name
             if (Context.Exists(TextBoxName.Text) && TextBoxName.Text != Data.Name)
             {
-                TextBoxName.BackColor = Color.Salmon;
+                TextBoxName.BackColor = Theme.FieldBack(false);
                 messages.Add("Name already exists");
             }
             else
-                TextBoxName.BackColor = Color.White;
+                TextBoxName.BackColor = Theme.FieldBack(true);
 
             // Address
             string addrTest = textBoxAddress.Text;
             if (addrTest.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 addrTest = addrTest.Substring(2);
             if (UInt32.TryParse(addrTest, System.Globalization.NumberStyles.HexNumber, null, out _))
-                textBoxAddress.BackColor = Color.White;
+                textBoxAddress.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxAddress.BackColor = Color.Salmon;
+                textBoxAddress.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid address");
             }
 
             // Size
             bool sizeValid = int.TryParse(textBoxSize.Text.Replace(".", ","), out int sizeValue);
             if (sizeValid)
-                textBoxSize.BackColor = Color.White;
+                textBoxSize.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxSize.BackColor = Color.Salmon;
+                textBoxSize.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid size");
             }
 
             // Y Offset
             if (double.TryParse(textBoxYOffset.Text.Replace(",", "."), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out _))
-                textBoxYOffset.BackColor = Color.White;
+                textBoxYOffset.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxYOffset.BackColor = Color.Salmon;
+                textBoxYOffset.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid Y offset");
             }
 
             // X Offset
             if (double.TryParse(textBoxXOffset.Text.Replace(",", "."), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out _))
-                textBoxXOffset.BackColor = Color.White;
+                textBoxXOffset.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxXOffset.BackColor = Color.Salmon;
+                textBoxXOffset.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid X offset");
             }
 
             // Y Gain
             if (double.TryParse(textBoxYGain.Text.Replace(",", "."), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out _))
-                textBoxYGain.BackColor = Color.White;
+                textBoxYGain.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxYGain.BackColor = Color.Salmon;
+                textBoxYGain.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid Y gain");
             }
 
             // Period of a channel without device
             if (RemoteDeviceCheckbox.Checked
                 || (double.TryParse(textBoxPeriod.Text.Replace(",", "."), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double period) && period > 0))
-                textBoxPeriod.BackColor = Color.White;
+                textBoxPeriod.BackColor = Theme.FieldBack(true);
             else
             {
-                textBoxPeriod.BackColor = Color.Salmon;
+                textBoxPeriod.BackColor = Theme.FieldBack(false);
                 messages.Add("Invalid period");
             }
 
@@ -269,7 +319,7 @@ namespace eScope
                         int expectedBits = dev.Data.V1DataSize * 8;
                         if (sizeValid && sizeValue != expectedBits)
                         {
-                            textBoxSize.BackColor = Color.Salmon;
+                            textBoxSize.BackColor = Theme.FieldBack(false);
                             messages.Add($"V1: size must be {expectedBits} bits ({dev.Data.V1DataSize} B per channel)");
                         }
 
@@ -388,13 +438,13 @@ namespace eScope
         {
             if (lhSrc == null)
             {
-                p.Image = Properties.Resources.unlink;
+                p.Image = LinkIcon(false);
                 lhDst.Unlink();
             }
             else
             {
                 lhDst.Link(lhSrc);
-                p.Image = Properties.Resources.link;
+                p.Image = LinkIcon(true);
                 t.Text = lhDst.DataRef.Data.ToString();
             }
         }
