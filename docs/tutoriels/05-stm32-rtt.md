@@ -1,5 +1,7 @@
 # 5. STM32 NUCLEO-C051C8 en RTT
 
+[English](../tutorials/05-stm32-rtt.md) | **Français**
+
 Remplacer la liaison série par **SEGGER RTT** : eScope lit et écrit des buffers en RAM du STM32
 par la sonde SWD du ST-LINK, pendant que le programme tourne. Pas d'UART, pas de fil, et un débit
 qui n'est plus limité à 115200 bauds : échantillonnage à 1 ms.
@@ -8,7 +10,7 @@ Prérequis : le [tutoriel 3](03-stm32-nucleo-serie.md) (projet importé, compil�
 
 ## Principe
 
-![Chaîne RTT : eScope, bridge pyOCD, ST-LINK, SWD](img/wiring-stm32-rtt.svg)
+![Chaîne RTT : eScope, bridge pyOCD, ST-LINK, SWD](../img/wiring-stm32-rtt.svg)
 
 - Le firmware déclare le bloc de contrôle `_SEGGER_RTT` et deux buffers circulaires en RAM
   (sources SEGGER dans [`targetExamples/SEGGER_RTT`](../../targetExamples/SEGGER_RTT)).
@@ -62,7 +64,7 @@ Aucun : le câble USB du ST-LINK porte le SWD (PA13 / PA14, reliés sur la carte
 | Protocol | **V3** |
 | Sampling Time | `1` |
 
-![Device en RTT/SWD](img/device-rtt-stm32.png)
+![Device en RTT/SWD](../img/device-rtt-stm32.png)
 
 À l'enregistrement (**Espace**), eScope démarre le bridge, attend qu'il soit prêt, puis s'y
 connecte. À l'arrêt, il le ferme. Les channels se créent comme en série

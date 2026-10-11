@@ -1,5 +1,7 @@
 # 7. STM32 NUCLEO-C051C8 en Wi-Fi / TCP
 
+[English](../tutorials/07-stm32-wifi-tcp.md) | **Français**
+
 Observer la carte à travers le réseau : un ESP32 relaie la liaison série 115200 bauds du STM32 sur
 une connexion TCP en Wi-Fi. eScope s'y connecte avec la liaison **TCP**.
 
@@ -53,7 +55,7 @@ reste allumée tant qu'eScope est connecté. Un nouveau client remplace le préc
 
 ## 3. Câblage
 
-![NUCLEO-C051C8 reliée à un ESP32, pont Wi-Fi TCP vers le PC](img/wiring-stm32-wifi-tcp.svg)
+![NUCLEO-C051C8 reliée à un ESP32, pont Wi-Fi TCP vers le PC](../img/wiring-stm32-wifi-tcp.svg)
 
 | NUCLEO-C051C8 | ESP32 DevKit |
 |---|---|
@@ -74,7 +76,7 @@ USB : il n'a plus besoin du PC.
 | Protocol | **V3** |
 | Sampling Time | `5` |
 
-![Device Nucleo-WiFi en TCP](img/device-tcp-stm32.png)
+![Device Nucleo-WiFi en TCP](../img/device-tcp-stm32.png)
 
 **Espace** : eScope ouvre la connexion TCP, la LED de l'ESP32 s'allume et les courbes arrivent comme
 en série ([tutoriel 3](03-stm32-nucleo-serie.md#6-channels-enregistrement-écriture)). Le PC et

@@ -1,5 +1,7 @@
 # eScope automation: AI agents (MCP) and scripts (REST)
 
+**English** | [Français](README.fr.md)
+
 eScope can be driven by an AI agent (Claude Code, Cursor, VS Code Copilot… through the
 [Model Context Protocol](https://modelcontextprotocol.io/)) or by a script (plain HTTP + JSON):
 acquisitions, channels (including computed ones), data, analysis, annotations, exports, and reads / writes of
@@ -92,7 +94,7 @@ Good to know:
 - `get_channel_data` returns every sample of the range: for long recordings, restrict the range or use
   `export_csv` / `save_trace`.
 
-Full specification (French): [.claude/docs/automation.md](../../.claude/docs/automation.md).
+Full specification (design document, French): [.claude/docs/automation.md](../../.claude/docs/automation.md).
 
 ## Try it without hardware: the V3 simulator
 

@@ -1,9 +1,11 @@
 # Tutoriels eScope
 
+[English](../tutorials/README.md) | **Français**
+
 Pas à pas pour déployer le module eScope dans un firmware, câbler la carte, puis observer et modifier
 des variables en temps réel depuis eScope.
 
-![Principe : eScope envoie des adresses, le firmware renvoie la mémoire brute](img/principe-escope.svg)
+![Principe : eScope envoie des adresses, le firmware renvoie la mémoire brute](../img/principe-escope.svg)
 
 ## Parcours
 

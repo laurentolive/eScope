@@ -1,5 +1,7 @@
 # eScope
 
+**English** | [Français](README.fr.md)
+
 A software oscilloscope for embedded developers: eScope reads variables straight from a
 microcontroller's RAM while it runs and plots them in real time, without halting the program
 or reaching for a hardware scope.
@@ -104,8 +106,8 @@ Then call `eScopeProtocol_Init()` at startup and `eScopeProtocol_Process()` at a
 Wireless links go through an ESP32 serial bridge: [`BluetoothSerialBridge/`](BluetoothSerialBridge/)
 (Bluetooth serial port) and [`WifiTcpBridge/`](WifiTcpBridge/) (Wi-Fi TCP).
 
-Step-by-step tutorials (French), with wiring diagrams and screenshots, for each board and link:
-[docs/tutoriels](docs/tutoriels/README.md).
+Step-by-step tutorials, with wiring diagrams and screenshots, for each board and link:
+[docs/tutorials](docs/tutorials/README.md).
 
 ## Build and run
 
@@ -139,12 +141,14 @@ Third-party files keep their own license: the SEGGER RTT sources and the ST / Re
 
 ## Documentation
 
-These documents are written in French.
-
-- [Tutorials](docs/tutoriels/README.md): deploying and using eScope on Arduino Nano, STM32 NUCLEO-C051C8 and
+- [Tutorials](docs/tutorials/README.md): deploying and using eScope on Arduino Nano, STM32 NUCLEO-C051C8 and
   Renesas FPB-RA4E1 over serial, RTT, Bluetooth and Wi-Fi / TCP
+- [AI / script automation](tools/automation/README.md): automation API (MCP + REST)
+
+Design documents (French):
+
 - [Product](.claude/docs/product.md): vision, features, editions
 - [Architecture](.claude/docs/architecture.md): threading, data flow, symbols
 - [API](.claude/docs/api.md): internal interfaces and wire format
 - [Constraints](.claude/docs/constraints.md): limits and deliberate choices
-- [Automation](.claude/docs/automation.md): AI / script automation API (MCP + REST); user guide in English: [tools/automation](tools/automation/README.md)
+- [Automation](.claude/docs/automation.md): full specification of the MCP + REST API

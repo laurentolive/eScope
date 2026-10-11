@@ -1,5 +1,7 @@
 # 6. STM32 NUCLEO-C051C8 en Bluetooth
 
+[English](../tutorials/06-stm32-bluetooth.md) | **Français**
+
 Observer la carte **sans câble vers le PC** : un ESP32 relaie la liaison série 115200 bauds du
 STM32 en Bluetooth. Côté PC, le Bluetooth apparaît comme un port COM : eScope le voit comme une
 liaison série ordinaire.
@@ -45,7 +47,7 @@ pour le débogage. La LED bleue (GPIO2) s'allume quand des données arrivent par
 
 ## 3. Câblage
 
-![NUCLEO-C051C8 reliée à un ESP32, pont Bluetooth vers le PC](img/wiring-stm32-bluetooth.svg)
+![NUCLEO-C051C8 reliée à un ESP32, pont Bluetooth vers le PC](../img/wiring-stm32-bluetooth.svg)
 
 | NUCLEO-C051C8 | ESP32 DevKit |
 |---|---|
@@ -81,7 +83,7 @@ d'ouvrir la connexion.
 | Protocol | **V3** |
 | Sampling Time | `5` |
 
-![Device Nucleo-BT](img/device-bluetooth-stm32.png)
+![Device Nucleo-BT](../img/device-bluetooth-stm32.png)
 
 **Espace** : à l'ouverture du port, Windows établit la connexion Bluetooth (une à deux secondes),
 puis les courbes arrivent comme en série USB ([tutoriel 3](03-stm32-nucleo-serie.md#6-channels-enregistrement-écriture)).

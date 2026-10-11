@@ -1,5 +1,7 @@
 # 2. Arduino Nano en série 115200
 
+[English](../tutorials/02-arduino-nano-serial.md) | **Français**
+
 Observer les variables d'un croquis Arduino en temps réel, par le câble USB de la carte.
 
 | | |
@@ -70,7 +72,7 @@ porte jusqu'à ~50 octets de données. À 1 ms, elle ne porte que 6 octets.
 
 ## 3. Câblage
 
-![Arduino Nano relié au PC par son câble USB](img/wiring-arduino-nano-usb.svg)
+![Arduino Nano relié au PC par son câble USB](../img/wiring-arduino-nano-usb.svg)
 
 Rien à câbler : le câble USB alimente la carte et porte la liaison série. **Fermer le moniteur série**
 de l'IDE : un port COM ne s'ouvre que dans un programme à la fois.
@@ -91,7 +93,7 @@ de l'IDE : un port COM ne s'ouvre que dans un programme à la fois.
 | Protocol | **V3** |
 | Sampling Time | `5` (la période `DEBUG_SCOPE_TS`, en ms) |
 
-![Device Nano en série 115200](img/device-serial-arduino.png)
+![Device Nano en série 115200](../img/device-serial-arduino.png)
 
 Sur AVR, GDB donne les adresses RAM avec le préfixe `0x800000` de l'espace de données
 (`&vitesse` = `0x80011a`) : c'est normal, le firmware ne garde que les 16 bits utiles.
@@ -108,7 +110,7 @@ Sur AVR, GDB donne les adresses RAM avec le préfixe `0x800000` de l'espace de d
 
 Puis **Espace** pour enregistrer :
 
-![vitesse (1 Hz), courant (2 Hz) et position](img/plot-arduino.png)
+![vitesse (1 Hz), courant (2 Hz) et position](../img/plot-arduino.png)
 
 La suite (navigation, Watch, mesures) est décrite dans la [prise en main](01-prise-en-main.md).
 

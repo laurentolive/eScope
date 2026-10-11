@@ -1,5 +1,7 @@
 # 4. Renesas FPB-RA4E1 en série 115200
 
+[English](../tutorials/04-ra4e1-serial.md) | **Français**
+
 Observer les variables d'un Renesas RA4E1 par une liaison série 115200 bauds sur SCI9, avec un
 adaptateur USB-série. Le même projet fonctionne aussi en RTT par la sonde J-Link intégrée, sans
 adaptateur (section 7).
@@ -69,7 +71,7 @@ période (`R_BSP_SoftwareDelay`).
 
 ## 5. Câblage
 
-![FPB-RA4E1 et adaptateur USB-série sur SCI9](img/wiring-ra4e1-uart.svg)
+![FPB-RA4E1 et adaptateur USB-série sur SCI9](../img/wiring-ra4e1-uart.svg)
 
 | Adaptateur USB-série | FPB-RA4E1 |
 |---|---|
@@ -91,12 +93,12 @@ P109 / P110 sont sur le connecteur Pmod 2 et sur le connecteur Arduino de la car
 | Protocol | **V3** |
 | Sampling Time | `5` |
 
-![Device RA4E1 en série 115200](img/device-serial-ra4e1.png)
+![Device RA4E1 en série 115200](../img/device-serial-ra4e1.png)
 
 Channels : `RA4E1.fSineApprox` (Float, Y Gain 5) et `RA4E1.u32Counter` (Unsigned Decimal,
 Y Gain 1000). **Espace** pour enregistrer :
 
-![fSineApprox et u32Counter](img/plot-ra4e1.png)
+![fSineApprox et u32Counter](../img/plot-ra4e1.png)
 
 ## 7. Variante RTT (configuration d'origine du projet)
 
@@ -110,7 +112,7 @@ Sans adaptateur ni fil, eScope lit la RAM par la sonde J-Link OB (même principe
 3. Device eScope : **RTT/SWD**, Target `r7fa4e10d`, Probe = le J-Link OB (*Refresh* pour la liste),
    Sampling Time `1`.
 
-![Device RA4E1 en RTT](img/device-rtt-ra4e1.png)
+![Device RA4E1 en RTT](../img/device-rtt-ra4e1.png)
 
 Fermer la session de debug d'e² studio avant d'enregistrer : la sonde ne sert qu'à un programme à la
 fois.

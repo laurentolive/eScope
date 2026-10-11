@@ -1,5 +1,7 @@
 # 3. STM32 NUCLEO-C051C8 en série 115200
 
+[English](../tutorials/03-stm32-nucleo-serial.md) | **Français**
+
 Observer et modifier les variables d'un STM32 en temps réel, par le port COM virtuel du ST-LINK
 intégré à la carte : un seul câble USB, aucun fil.
 
@@ -77,7 +79,7 @@ transport HAL dans `Core/Src/eScopeTransportUart.c`. La période d'appel de
 
 ## 4. Câblage
 
-![NUCLEO-C051C8 reliée au PC par le câble USB du ST-LINK](img/wiring-stm32-vcp.svg)
+![NUCLEO-C051C8 reliée au PC par le câble USB du ST-LINK](../img/wiring-stm32-vcp.svg)
 
 Rien à câbler. Dans le Gestionnaire de périphériques, la carte apparaît comme
 **STMicroelectronics STLink Virtual COM Port (COMx)** (pilote installé avec STM32CubeIDE).
@@ -94,7 +96,7 @@ Rien à câbler. Dans le Gestionnaire de périphériques, la carte apparaît com
 | Protocol | **V3** |
 | Sampling Time | `5` (`ESCOPE_SAMPLING_MS`) |
 
-![Device Nucleo en série 115200](img/device-serial-stm32.png)
+![Device Nucleo en série 115200](../img/device-serial-stm32.png)
 
 ## 6. Channels, enregistrement, écriture
 
@@ -109,12 +111,12 @@ Rien à câbler. Dans le Gestionnaire de périphériques, la carte apparaît com
 
 **Espace** lance l'enregistrement. Appuyer sur le bouton bleu **USER** : `u8Button` passe à 1.
 
-![Enregistrement en cours](img/plot-recording-stm32.png)
+![Enregistrement en cours](../img/plot-recording-stm32.png)
 
 **W** ouvre la Watch : ajouter `fAmplitude` et `fFrequency`, puis double-cliquer sur leur valeur pour
 la modifier. Le firmware lit ces variables à chaque période : la sinusoïde change aussitôt.
 
-![Watch : écriture de fAmplitude](img/watch-write-stm32.png)
+![Watch : écriture de fAmplitude](../img/watch-write-stm32.png)
 
 Toutes les fonctions d'eScope sont détaillées dans la [prise en main](01-prise-en-main.md).
 

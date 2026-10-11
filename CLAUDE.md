@@ -96,7 +96,7 @@ Workspace state serialized to `eScope.json` with `System.Text.Json`. The file is
 
 `BluetoothSerialBridge/` and `WifiTcpBridge/` (repository root) — ESP32 sketches bridging a target UART to Bluetooth SPP / to a Wi-Fi TCP server (port 3333).
 
-`docs/tutoriels/` — user tutorials (French) per board and link, with screenshots and SVG wiring diagrams.
+`docs/tutorials/` (English) and `docs/tutoriels/` (French) — user tutorials per board and link, kept in sync (same numbering, language link at the top of each page). Screenshots and SVG wiring diagrams are shared in `docs/img/` (`*.svg` French, `*.en.svg` English). User-facing READMEs exist in both languages (`README.md` / `README.fr.md`).
 
 **`eScopeProtocol/`** — Protocol implementations (compile-time selection via `eScopeProtocol.h`).  
 Define exactly one of the following in `eScopeCfg.h` (project-supplied):
