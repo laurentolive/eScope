@@ -1,0 +1,122 @@
+{
+	"Devices": [
+		{
+			"Name": "Dev1",
+			"Com": "Simu",
+			"SymbolFilePath": "",
+			"Protocol": ""
+		},
+		{
+			"Name": "Dev2",
+			"Com": "Serial:COM2,8,N,1",
+			"SymbolFilePath": "",
+			"Protocol": ""
+		}
+	],
+
+	"Traces": [
+		{
+			"Name": "Trace1",
+			"FramePerSecond": 20,
+			"WindowsTimeMs": 100,
+			"t": 0,
+			"Channels": [
+				{
+					"Name": "Var1",
+					"ColorRGB": {
+						"Red": 0,
+						"Green": 0,
+						"Blue": 255
+					},
+					"Symbol": "u8Var1",
+					"Device": "Dev1",
+					"Address": "0x2000000",
+					"Size": 16,
+					"Shift": 0,
+					"SamplingTime": 2,
+					"Function": "",
+					"Data": ""
+				},
+				{
+					"Name": "Var2",
+					"ColorRGB": {
+						"Red": 255,
+						"Green": 0,
+						"Blue": 0
+					},
+					"Symbol": "u8Var2",
+					"Device": "Dev1",
+					"Address": "0x2000004",
+					"Size": 16,
+					"Shift": 0,
+					"SamplingTime": 2,
+					"Function": "",
+					"X": [],
+					"Y": []
+				}
+			],
+			"Markers": []
+		},
+		{
+			"Name": "Trace2",
+			"FramePerSecond": 20,
+			"WindowsTimeMs": 100,
+			"t": 0,
+			"Channels": [
+				{
+					"Name": "Var1",
+					"ColorRGB": {
+						"Red": 0,
+						"Green": 0,
+						"Blue": 255
+					},
+					"Symbol": "u8Var1",
+					"Device": "Dev1",
+					"Address": "0x2000000",
+					"Size": 16,
+					"Shift": 0,
+					"SamplingTime": 2,
+					"Function": "",
+					"Data": ""
+				},
+				{
+					"Name": "Var2",
+					"ColorRGB": {
+						"Red": 0,
+						"Green": 0,
+						"Blue": 255
+					},
+					"Symbol": "u8Var2",
+					"Device": "Dev1",
+					"Address": "0x2000004",
+					"Size": 16,
+					"Shift": 0,
+					"SamplingTime": 2,
+					"Function": "",
+					"X": [],
+					"Y": []
+				}
+			],
+			"Markers": [
+				{
+					"Name": "M1",
+					"ColorRGB": {
+						"Red": 0,
+						"Green": 0,
+						"Blue": 255
+					},
+					"Pos": 20
+				},
+				{
+					"Name": "M2",
+					"ColorRGB": {
+						"Red": 255,
+						"Green": 0,
+						"Blue": 0
+					},
+					"Pos":20
+				}
+			]
+		}
+	]
+}

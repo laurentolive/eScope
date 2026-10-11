@@ -1,0 +1,4 @@
+motor_speed 0x20000010
+motor_current 0x20000014
+motor_cfg 0x20000020
+led_state 0x20000030

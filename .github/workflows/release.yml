@@ -1,0 +1,45 @@
+# Push a tag vX.Y.Z (or vX.Y.Z-rc.1 for a pre-release) to build eScope and publish a GitHub release
+# with eScope_vX.Y.Z_win-x64.zip, the package the in-app updater downloads.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # MinVer computes the version from the tags
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Fetch portable gdb
+        shell: pwsh
+        run: ./tools/fetch-gdb.ps1
+
+      - name: Publish
+        shell: pwsh
+        run: dotnet publish eScope/eScope.csproj -c Release -o "publish/eScope_${{ github.ref_name }}"
+
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path "publish/eScope_${{ github.ref_name }}" -DestinationPath "eScope_${{ github.ref_name }}_win-x64.zip"
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $flags = @('--title', "eScope $tag", '--generate-notes', '--verify-tag')
+          if ($tag.Contains('-')) { $flags += '--prerelease' }
+          gh release create $tag "eScope_${tag}_win-x64.zip" @flags

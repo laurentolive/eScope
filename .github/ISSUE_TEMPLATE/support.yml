@@ -1,0 +1,24 @@
+# Opened from eScope (About > Support): the app prefills the fields by their id in the URL
+name: Support
+description: Ask for help with eScope
+title: "[Support] "
+labels: ["support"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happens, what you expected, steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (optional)
+      description: An email (visible to everyone)
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: eScope version, license, OS (filled in by eScope)
+      render: text

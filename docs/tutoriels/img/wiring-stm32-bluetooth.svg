@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Câblage NUCLEO-C051C8 et ESP32 : pont série Bluetooth">
+<title>Câblage NUCLEO-C051C8 et ESP32 : pont série Bluetooth</title>
+<defs><marker id="a212529" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#212529"/></marker><marker id="s212529" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#212529"/></marker><marker id="a2f9e44" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="s2f9e44" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a7048e8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="s7048e8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="ac92a2a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="sc92a2a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="a5b6573" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6573"/></marker><marker id="s5b6573" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6573"/></marker><marker id="ad9480f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d9480f"/></marker><marker id="sd9480f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d9480f"/></marker><marker id="a1d2430" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d2430"/></marker><marker id="s1d2430" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d2430"/></marker><marker id="a8a94a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a94a3"/></marker><marker id="s8a94a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a94a3"/></marker><marker id="a1971c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="s1971c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="30" y="40" width="210" height="150" rx="10" fill="#eef2f7" stroke="#3d4a5c" stroke-width="2"/>
+<rect x="45" y="55" width="180" height="88" rx="6" fill="#ffffff" stroke="#c9d1db" stroke-width="1.5"/>
+<text x="135.0" y="52" font-size="1" fill="#1d2430" text-anchor="start" font-weight="normal"></text>
+<text x="135.0" y="82" font-size="13" fill="#1d2430" text-anchor="middle" font-weight="700">eScope</text>
+<text x="135.0" y="100" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">Device « Nucleo-BT »</text>
+<text x="135.0" y="118" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">Serial COMx, 115200</text>
+<text x="135.0" y="172" font-size="12" fill="#5b6573" text-anchor="middle" font-weight="normal">PC Windows</text>
+<text x="135.0" y="208" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal" font-style="italic">« Lien série sur Bluetooth standard »</text>
+<polyline points="240,110 360,110" fill="none" stroke="#2f9e44" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 6" marker-end="url(#a2f9e44)" marker-start="url(#s2f9e44)"/>
+<rect x="247.2" y="81" width="105.60000000000001" height="18" rx="9" fill="#fff" stroke="#2f9e44" stroke-width="1.5"/>
+<text x="300" y="95" font-size="11" fill="#2f9e44" text-anchor="middle" font-weight="600">Bluetooth SPP</text>
+<rect x="360" y="40" width="230" height="230" rx="12" fill="#2b2f36" stroke="#000000" stroke-width="2"/>
+<text x="475" y="64" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="700">ESP32 DevKit (WROOM)</text>
+<text x="475" y="84" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">BluetoothSerialBridge.ino</text>
+<text x="475" y="102" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">nom BT : ESP32_BT</text>
+<circle cx="590" cy="170" r="5" fill="#fff" stroke="#d9480f" stroke-width="2"/>
+<text x="580" y="174" font-size="12" fill="#ffffff" text-anchor="end" font-weight="normal">GPIO16 (RX2)</text>
+<circle cx="590" cy="194" r="5" fill="#fff" stroke="#1971c2" stroke-width="2"/>
+<text x="580" y="198" font-size="12" fill="#ffffff" text-anchor="end" font-weight="normal">GPIO17 (TX2)</text>
+<circle cx="590" cy="218" r="5" fill="#fff" stroke="#212529" stroke-width="2"/>
+<text x="580" y="222" font-size="12" fill="#ffffff" text-anchor="end" font-weight="normal">GND</text>
+<text x="475" y="254" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">alimenté par son USB</text>
+<polyline points="420,270 420,340" fill="none" stroke="#8a94a3" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="435" y="330" font-size="11" fill="#5b6573" text-anchor="start" font-weight="normal">USB : chargeur 5 V ou PC</text>
+<rect x="700" y="40" width="230" height="300" rx="12" fill="#f8f9fa" stroke="#3d4a5c" stroke-width="2"/>
+<text x="815" y="64" font-size="14" fill="#1d2430" text-anchor="middle" font-weight="700">NUCLEO-C051C8</text>
+<text x="815" y="84" font-size="10" fill="#5b6573" text-anchor="middle" font-weight="normal">ESCOPE_UART_ID = ESCOPE_UART_BRIDGE</text>
+<rect x="745" y="230" width="140" height="80" rx="6" fill="#2b2f36" stroke="#2b2f36" stroke-width="2"/>
+<text x="815" y="268" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="700">STM32C051C8</text>
+<text x="815" y="286" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">USART1</text>
+<circle cx="700" cy="170" r="5" fill="#fff" stroke="#d9480f" stroke-width="2"/>
+<text x="710" y="174" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">PB6 (USART1_TX)</text>
+<circle cx="700" cy="194" r="5" fill="#fff" stroke="#1971c2" stroke-width="2"/>
+<text x="710" y="198" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">PB7 (USART1_RX)</text>
+<circle cx="700" cy="218" r="5" fill="#fff" stroke="#212529" stroke-width="2"/>
+<text x="710" y="222" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">GND</text>
+<polyline points="695,170 595,170" fill="none" stroke="#d9480f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#ad9480f)"/>
+<polyline points="595,194 695,194" fill="none" stroke="#1971c2" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#a1971c2)"/>
+<polyline points="595,218 695,218" fill="none" stroke="#212529" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="815" y="330" font-size="10" fill="#5b6573" text-anchor="middle" font-weight="normal">USB CN1 : alimentation / flash</text>
+<polyline points="30,230 60,230" fill="none" stroke="#d9480f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="68" y="234" font-size="11" fill="#5b6573" text-anchor="start" font-weight="normal">PB6 TX → GPIO16 RX2</text>
+<polyline points="30,250 60,250" fill="none" stroke="#1971c2" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="68" y="254" font-size="11" fill="#5b6573" text-anchor="start" font-weight="normal">GPIO17 TX2 → PB7 RX</text>
+<polyline points="30,270 60,270" fill="none" stroke="#212529" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="68" y="274" font-size="11" fill="#5b6573" text-anchor="start" font-weight="normal">masse commune (indispensable)</text>
+<polyline points="30,290 60,290" fill="none" stroke="#2f9e44" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8 6"/>
+<text x="68" y="294" font-size="11" fill="#5b6573" text-anchor="start" font-weight="normal">liaison sans fil</text>
+<rect x="30" y="380" width="900" height="66" rx="8" fill="#fff8e1" stroke="#e6b800" stroke-width="1.5"/>
+<text x="42" y="402" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">3 fils seulement : TX et RX croisés + GND. Les deux cartes sont en logique 3,3 V : aucun adaptateur de niveau.</text>
+<text x="42" y="419" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">PB6 / PB7 : repérer les broches sur la sérigraphie des connecteurs ST morpho (tableaux du manuel UM2953).</text>
+<text x="42" y="436" font-size="12" fill="#1d2430" text-anchor="start" font-weight="normal">USART2 (PA2 / PA3) reste relié au ST-LINK : ne pas l&#x27;utiliser pour le pont.</text>
+</svg>
