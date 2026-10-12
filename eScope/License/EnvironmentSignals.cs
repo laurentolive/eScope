@@ -11,6 +11,10 @@ namespace eScope.License
 
     public static class EnvironmentSignals
     {
+        // Active Directory domain or Azure AD / Entra ID: likely a work computer
+        public static bool IsManagedByOrganization() => IsDomainJoined() || IsAzureAdJoined();
+
+
         public static bool IsDomainJoined()
         {
             try

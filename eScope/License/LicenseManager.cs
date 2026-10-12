@@ -21,6 +21,7 @@ namespace eScope.License
                 // validate first: a renewed subscription must not show the expired reminder
                 await RevalidateAsync(silent: true);
                 EnsureLicense();
+                RemindManagedPersonal();
             };
             License = LicenseStore.Load();
         }
@@ -52,23 +53,16 @@ namespace eScope.License
                 using var selDlg = new LicenseCreateForm();
                 selDlg.ShowDialog();
 
+                // managed computer: OK goes on with the Personal license, Cancel goes back to the license choice
+                bool managed = EnvironmentSignals.IsManagedByOrganization();
+                while (managed && (selDlg.SelectedLicense == LicenseType.Personal))
+                {
+                    if (ShowManagedNotice(MessageBoxButtons.OKCancel) == DialogResult.OK)
+                        break;
+                    selDlg.ShowDialog();
+                }
                 if (selDlg.SelectedLicense == LicenseType.Personal)
                 {
-                    while ((EnvironmentSignals.IsDomainJoined() || EnvironmentSignals.IsAzureAdJoined()) && (selDlg.SelectedLicense == LicenseType.Personal))
-                    {
-                        var returnType = MessageBox.Show(
-                        "This computer appears to be managed by an organization.\n\n" +
-                        "Personal licenses are intended for non-commercial use.\n" +
-                        "If you are using this software for work or professional purposes,\n" +
-                        "a Professional license is required.",
-                        "Notice",
-                        MessageBoxButtons.OKCancel,
-                        MessageBoxIcon.Warning);
-                        if (returnType == DialogResult.Cancel)
-                        {
-                            selDlg.ShowDialog();
-                        }
-                    }
                     using var dlg = new PersonalConfirmationForm();
                     if (dlg.ShowDialog() == DialogResult.OK && (dlg.Accepted == true))
                     {
@@ -100,6 +94,29 @@ namespace eScope.License
                 LicenseStore.Save(License);
                 OnStateChanged();
             }
+        }
+
+        static bool ManagedNoticeShown;
+
+        private static DialogResult ShowManagedNotice(MessageBoxButtons buttons)
+        {
+            ManagedNoticeShown = true;
+            return MessageBox.Show(
+                "This computer appears to be managed by an organization.\n\n" +
+                "Personal licenses are intended for non-commercial use.\n" +
+                "If you are using this software for work or professional purposes,\n" +
+                "a Professional license is required.",
+                "Notice", buttons, MessageBoxIcon.Warning);
+        }
+
+        // a Personal license on a managed computer (obtained before it joined the domain, or copied
+        // profile): reminder at each startup, without blocking; not twice when the license was just chosen
+        private static void RemindManagedPersonal()
+        {
+            if (License is not { Type: LicenseType.Personal } || ManagedNoticeShown)
+                return;
+            if (EnvironmentSignals.IsManagedByOrganization())
+                ShowManagedNotice(MessageBoxButtons.OK);
         }
 
         // validates the Professional key against Lemon Squeezy and refreshes its status / expiry
