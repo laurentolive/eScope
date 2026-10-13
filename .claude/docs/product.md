@@ -97,7 +97,7 @@ Trois types (License/) — aucun n'est bridé fonctionnellement aujourd'hui, la 
 | Personnelle | Perpétuelle | Non-commercial ; bloquée si machine domain-joined ou Azure AD |
 | Professionnelle | Abonnement annuel (Lemon Squeezy) | Aucune |
 
-La vérification domain-join se fait via `EnvironmentSignals.IsDomainJoined` / `IsAzureAdJoined` et force le choix de la licence Pro sur machine d'entreprise.
+La vérification domain-join se fait via `EnvironmentSignals.IsDomainJoined` / `IsAzureAdJoined` : sur machine d'entreprise, choisir la Personnelle affiche un avertissement (OK continue, Annuler revient au choix), puis un rappel non bloquant à chaque démarrage tant que la licence est Personnelle.
 
 ### Licence Professionnelle — Lemon Squeezy
 

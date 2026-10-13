@@ -11,7 +11,7 @@ namespace eScope
         public Color Border, BorderStrong, Grid, GridMajor;
         public Color Text, Text2, Muted, Faint;
         public Color Hover, Pressed, Selected, Chip;
-        public Color Accent, OnAccent, AccentSubtle;
+        public Color Accent, AccentFill, OnAccent, AccentSubtle; // AccentFill: filled with the accent, text in OnAccent
         public Color Rec, RecBg, RecBorder, RecText, Ok;
         public Color ErrorBg; // background of an invalid field
 
@@ -23,7 +23,7 @@ namespace eScope
             Border = H(0xE3E5E8), BorderStrong = H(0xD0D3D8), Grid = H(0xEEF0F2), GridMajor = H(0xDDE0E4),
             Text = H(0x1B1D21), Text2 = H(0x3B3F45), Muted = H(0x5B6068), Faint = H(0x8B9098),
             Hover = H(0xEBEDF0), Pressed = H(0xE0E3E7), Selected = H(0xE4ECF6), Chip = H(0xF1F2F4),
-            Accent = H(0x005FB8), OnAccent = H(0xFFFFFF), AccentSubtle = H(0xDCE8F5),
+            Accent = H(0x005FB8), AccentFill = H(0x005FB8), OnAccent = H(0xFFFFFF), AccentSubtle = H(0xDCE8F5),
             Rec = H(0xD13438), RecBg = H(0xFDF0F0), RecBorder = H(0xF1B9BA), RecText = H(0xA4262C), Ok = H(0x107C10),
             ErrorBg = H(0xFDE2E2),
         };
@@ -34,7 +34,7 @@ namespace eScope
             Border = H(0x2C2E33), BorderStrong = H(0x3D4047), Grid = H(0x27292E), GridMajor = H(0x34373D),
             Text = H(0xE8E9EB), Text2 = H(0xC9CCD1), Muted = H(0x9A9FA8), Faint = H(0x6E737C),
             Hover = H(0x2C2E33), Pressed = H(0x35383E), Selected = H(0x1E3550), Chip = H(0x2A2C31),
-            Accent = H(0x4F9BE8), OnAccent = H(0x0B1622), AccentSubtle = H(0x1E3550),
+            Accent = H(0x4F9BE8), AccentFill = H(0x2F6FBA), OnAccent = H(0xFFFFFF), AccentSubtle = H(0x1E3550),
             Rec = H(0xFF5A5F), RecBg = H(0x3A1B1D), RecBorder = H(0x6B2A2E), RecText = H(0xFF9A9E), Ok = H(0x4CC38A),
             ErrorBg = H(0x4A2226),
         };
@@ -361,7 +361,7 @@ namespace eScope
             string? tag = item.Tag as string;
             if (tag == "accent")
             {
-                Color c = item.Pressed ? Theme.Blend(p.Accent, p.Surface, 0.8f) : item.Selected ? Theme.Blend(p.Accent, p.Surface, 0.9f) : p.Accent;
+                Color c = item.Pressed ? Theme.Blend(p.AccentFill, p.Surface, 0.8f) : item.Selected ? Theme.Blend(p.AccentFill, p.Surface, 0.9f) : p.AccentFill;
                 Theme.FillRounded(e.Graphics, r, c);
                 return;
             }

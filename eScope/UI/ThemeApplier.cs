@@ -155,11 +155,31 @@ namespace eScope
             b.FlatStyle = FlatStyle.Flat;
             b.UseVisualStyleBackColor = false;
             b.FlatAppearance.BorderColor = primary && !custom ? p.Accent : p.BorderStrong;
-            b.FlatAppearance.MouseOverBackColor = custom ? b.BackColor : primary ? Theme.Blend(p.Accent, p.Surface, 0.88f) : p.Hover;
-            b.FlatAppearance.MouseDownBackColor = custom ? b.BackColor : primary ? Theme.Blend(p.Accent, p.Surface, 0.75f) : p.Pressed;
-            if (!custom) b.BackColor = primary ? p.Accent : p.Input;
+            b.FlatAppearance.MouseOverBackColor = custom ? b.BackColor : primary ? Theme.Blend(p.AccentFill, p.Surface, 0.88f) : p.Hover;
+            b.FlatAppearance.MouseDownBackColor = custom ? b.BackColor : primary ? Theme.Blend(p.AccentFill, p.Surface, 0.75f) : p.Pressed;
+            if (!custom) b.BackColor = primary ? p.AccentFill : p.Input;
             if (Replaceable(b, nameof(Control.ForeColor), b.ForeColor) || b.ForeColor == Palette.Light.OnAccent || b.ForeColor == Palette.Dark.OnAccent)
                 b.ForeColor = primary && !custom ? p.OnAccent : p.Text;
+            if (!disabledPainted.TryGetValue(b, out _))
+            {
+                disabledPainted.Add(b, new object());
+                b.Paint += PaintDisabled;
+            }
+        }
+
+        static readonly ConditionalWeakTable<Button, object> disabledPainted = new();
+
+        // a disabled flat button draws its text with a darker shade of its back color: black in dark mode
+        static void PaintDisabled(object? sender, PaintEventArgs e)
+        {
+            if (sender is not Button b || b.Enabled || b.Image != null || b.FlatStyle != FlatStyle.Flat) return;
+            var p = Theme.Current;
+            bool custom = !Replaceable(b, nameof(Control.BackColor), b.BackColor);
+            var r = b.ClientRectangle;
+            using (var back = new SolidBrush(custom ? b.BackColor : p.Input)) e.Graphics.FillRectangle(back, r);
+            using (var border = new Pen(p.Border)) e.Graphics.DrawRectangle(border, r.X, r.Y, r.Width - 1, r.Height - 1);
+            TextRenderer.DrawText(e.Graphics, b.Text, b.Font, Rectangle.Inflate(r, -b.Padding.Horizontal / 2, 0), p.Faint,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.HidePrefix);
         }
 
         public static void AttachComboPainter(ComboBox combo) => ComboPainter.Attach(combo);

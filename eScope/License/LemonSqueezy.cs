@@ -52,11 +52,11 @@ namespace eScope.License
     // on this machine and validates it again at startup
     public static class LemonSqueezy
     {
-        // TODO: values of the Lemon Squeezy store (Settings > Stores for the id, product page for the id and the buy link)
-        public const long StoreId = 0;
-        public const long ProductId = 0;
-        public const string BuyUrl = "https://escope.lemonsqueezy.com/buy/TODO";
-        public const string PortalUrl = "https://escope.lemonsqueezy.com/billing";
+        // Lemon Squeezy store "esquaresoft" (Settings > Stores for the id, product page for the id and the buy link)
+        public const long StoreId = 496238;
+        public const long ProductId = 1434201;
+        public const string BuyUrl = "https://esquaresoft.lemonsqueezy.com/checkout/buy/e5a58837-eae0-40d6-a55d-9df47e0655fa";
+        public const string PortalUrl = "https://esquaresoft.lemonsqueezy.com/billing";
 
         const string ApiUrl = "https://api.lemonsqueezy.com/v1/licenses/";
 
