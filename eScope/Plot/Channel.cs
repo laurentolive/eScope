@@ -141,7 +141,8 @@ namespace eScope.Plot
          public double time = 0;
         public List<double> Y { get; } = new List<double>();
         public DeviceCtrl Dev;
-        public uint protocolToken = 0;
+        public uint protocolToken = 0; // 0: not read by the device (channel of another trace)
+        public IPlotContext Trace => Context;
         public ChannelCtrl(Channel data, IPlotContext trc) : base(data, trc)
         {
             trc.ScriptGlobalsDict[data.Name] = Y;

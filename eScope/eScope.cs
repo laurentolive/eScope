@@ -271,6 +271,10 @@ namespace eScope
             if (ctrl == loadedTrace) return;
             loadedTrace?.UnLoad();
             loadedTrace = ctrl;
+            foreach (DeviceCtrl d in Devices)
+            {
+                d.SetActiveTrace(loadedTrace);
+            }
             loadedTrace?.Load();
             ShowSidePanel(loadedTrace);
             UpdateTabStrip();
@@ -458,6 +462,7 @@ namespace eScope
                 devicesMenu.DropDownItems.Add(item);
 
                 DeviceCtrl ctrl = new(dev);
+                ctrl.SetActiveTrace(loadedTrace);
                 Devices.Add(ctrl);
             }
             else

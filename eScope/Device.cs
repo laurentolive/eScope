@@ -64,6 +64,7 @@ namespace eScope
         bool inPump = false;
         public IProtocol? Protocol;
         List<ChannelCtrl> Channels = new List<ChannelCtrl>();
+        IPlotContext? activeTrace;
         public int ChannelCount => Channels.Count;
         // device time base: one step per received periodic frame
         public long FrameCount { get; private set; } = 0;
@@ -99,25 +100,53 @@ namespace eScope
                 Protocol.Timeout += OnTimeout;
             }
 
+            // new protocol: the old tokens are not valid any more
             foreach(var c in Channels)
             {
-                if(Protocol != null)
+                c.protocolToken = 0;
+                if((Protocol != null) && IsAcquired(c))
                 {
-                    if(c.protocolToken != 0)
-                    {
-                        Protocol.ReadMemUnregister(c.protocolToken); 
-                    }
                     c.protocolToken = Protocol.ReadMemRegister(c.SignalBase.Address, c.SignalBase.Size);
                 }
             }
         }
+        // only the channels of the current trace are read on the target (recording applies to the current trace)
+        bool IsAcquired(ChannelCtrl c) => (activeTrace != null) && (c.Trace == activeTrace);
+        public void SetActiveTrace(IPlotContext? trace)
+        {
+            if (trace == activeTrace) return;
+            activeTrace = trace;
+            if (Protocol == null) return;
+            bool isChanged = false;
+            foreach (var c in Channels)
+            {
+                bool acquired = IsAcquired(c);
+                if (acquired && (c.protocolToken == 0))
+                {
+                    c.protocolToken = Protocol.ReadMemRegister(c.SignalBase.Address, c.SignalBase.Size);
+                    isChanged = true;
+                }
+                else if (!acquired && (c.protocolToken != 0))
+                {
+                    Protocol.ReadMemUnregister(c.protocolToken);
+                    c.protocolToken = 0;
+                    isChanged = true;
+                }
+            }
+            if (isChanged)
+            {
+                Protocol.UpdateConfig();
+            }
+        }
+        IEnumerable<ChannelCtrl> AcquiredChannels => Channels.Where(c => c.protocolToken != 0);
         // all channels of the device move one step per frame (plus the lost ones), a missing value holds the previous one
         void OnFrameComplete(int lost, IReadOnlyDictionary<uint, UInt64> frame)
         {
             FrameCount += lost + 1;
 
-            var starting = Channels.Where(c => c.SignalBase.Y.Count == 0).ToList();
-            var running = Channels.Except(starting).ToList();
+            var acquired = AcquiredChannels.ToList();
+            var starting = acquired.Where(c => c.SignalBase.Y.Count == 0).ToList();
+            var running = acquired.Except(starting).ToList();
 
             // lost frames first, so that starting channels align on the right trace time
             foreach (var c in running)
@@ -144,7 +173,7 @@ namespace eScope
         // no frame for a while: unknown number of samples missing, only marked on the channels
         void OnTimeout()
         {
-            foreach (var c in Channels)
+            foreach (var c in AcquiredChannels)
             {
                 c.AddTimeout();
             }
@@ -326,7 +355,8 @@ namespace eScope
                 Protocol?.UpdateConfig();
             }
             Channels.Add(c);
-            if(Protocol != null)
+            c.protocolToken = 0;
+            if((Protocol != null) && IsAcquired(c))
             {
                 c.protocolToken = Protocol.ReadMemRegister(c.SignalBase.Address, c.SignalBase.Size);
             }
@@ -339,6 +369,7 @@ namespace eScope
                 if(c.protocolToken != 0)
                 {
                     Protocol?.ReadMemUnregister(c.protocolToken);
+                    c.protocolToken = 0;
                 }
             }
         }
