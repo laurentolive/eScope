@@ -158,7 +158,9 @@ namespace eScope.Symbol.Gdb
             if (p.StartsWith("qSupported")) return $"PacketSize={4096:x};QStartNoAckMode+";
             if (p == "QStartNoAckMode") { noAck = true; return "OK"; }
             if (p == "?") return "S05";
-            if (p == "g") return "00000000";  // shorter than the register set: the rest is asked with 'p'
+            // shorter than the register set: the rest is asked with 'p'. 8 bytes: whole first register(s) on
+            // every architecture (x86-64 rax: a 4 bytes reply is refused, "Truncated register 0")
+            if (p == "g") return "0000000000000000";
             if (p.StartsWith("p")) return "00000000";
             if (p.StartsWith("m")) return ReadMemory(p.Substring(1));
             if (p.StartsWith("M")) return WriteMemory(p.Substring(1));

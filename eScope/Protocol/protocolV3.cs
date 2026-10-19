@@ -49,6 +49,9 @@ namespace eScope.Protocol
         MemData? pendingRead;
         readonly System.Diagnostics.Stopwatch pendingReadTime = new();
         const int READ_APERIODIC_TIMEOUT_MS = 1000;
+        // error frames received this long after a CMD_CLEAR may predate it: ignored
+        const int CLEAR_GRACE_MS = 200;
+        readonly System.Diagnostics.Stopwatch clearTime = new();
         Pipe pipe;
         // err: 0 for a data frame, else the error code of an error frame (payload in data)
         ConcurrentQueue<(byte[] data, int lost, uint err)> frameQueue;
@@ -453,7 +456,9 @@ namespace eScope.Protocol
             // the time base goes on: the error frame is a lost sample
             if (bRun)
                 FrameComplete?.Invoke(lost, new Dictionary<uint, UInt64>());
-            if (bErrorHandled)
+            // sent before the device processed the last CMD_CLEAR, or before the first one of the link (error
+            // of a previous configuration, or of another host): ignored, an error still present is repeated after it
+            if (bErrorHandled || !clearTime.IsRunning || (clearTime.ElapsedMilliseconds < CLEAR_GRACE_MS))
                 return;
             bErrorHandled = true;
             Console.WriteLine($"ProtocolV3 Err Rx : 0x{err:X} {BitConverter.ToString(data)}");
@@ -500,6 +505,7 @@ namespace eScope.Protocol
         {
             bErrorHandled = false;
             bConfigError = false; // firmware may have changed: checked again by the device
+            clearTime.Reset();    // no CMD_CLEAR sent yet on this link
             pipe = new();
             frameQueue = new();
             flow.Resync();
@@ -603,6 +609,7 @@ namespace eScope.Protocol
             Config = new byte[1];
             Config[0] = (byte)CMD_CLEAR;
             SendConfig();
+            clearTime.Restart();
 
             if (failReads)
             {
