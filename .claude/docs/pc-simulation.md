@@ -24,7 +24,7 @@ eScope (PC)                         simulateur C# (process séparé)
 ───────────                         ───────────────────────────────────────────────
 Device  Protocol V3, AddressSize 8  ┌ relais TCP ⇄ UART simulée (TcpListener :47700)
   │                                 │     │ octets reçus injectés dans le contexte du scheduler
-ComTcp  "TCP:127.0.0.1,47700" ──────┘     ▼
+ComTcp  "TCP:127.0.0.1,47700" ──────┘     ▼   (dans le driver UART simulé)
                                     UART simulée ⇄ firmware.dll (GCC ou MSVC)
                                                    eScopeTransportUart (inchangé)
                                                    eScopeProtocolV3 + hooks PC :
@@ -41,11 +41,12 @@ Ce qui ne change pas : `ComTcp`, la détection de trames, le flow counter, la ba
 
 ## 1. Transport : TCP sous l'UART simulée
 
-Le firmware garde son transport UART (`ESCOPE_TRANSPORT_UART`). Le **simulateur relaie l'UART simulée vers
-un socket TCP serveur** ; eScope s'y connecte avec `ComTcp` (`TCP:127.0.0.1,<port>`), comme sur un pont
-Wi-Fi.
+Le firmware garde son transport UART (`ESCOPE_TRANSPORT_UART`). Le relais vers un socket TCP serveur est
+fait **dans la couche driver UART du simulateur** : l'UART simulée sur laquelle tourne eScopeProtocol a
+pour « fil » un socket au lieu d'un modèle de périphérique. eScope s'y connecte avec `ComTcp`
+(`TCP:127.0.0.1,<port>`), comme sur un pont Wi-Fi. Ni le firmware ni eScope ne voient la différence.
 
-Spécification du relais (côté simulateur C#) :
+Spécification du relais (driver UART du simulateur C#) :
 
 | Point | Choix |
 |---|---|
@@ -69,16 +70,32 @@ compilée en x86 garde 4 octets.
 ### Format filaire V3 (étendu, rétrocompatible)
 
 ```
-[CMD][SIZE][ADDR_0 … ADDR_{n-1}]        n = ESCOPE_PROTOCOL_ADDRESS_SIZE (4 ou 8), little-endian
+[CMD][SIZE][ADDR_0 … ADDR_{n-1}]        n = 4 ou 8, little-endian
 CMD_SIZE = 2 + n                        (6 aujourd'hui, 10 en 64 bits)
 ```
 
-Rien d'autre ne change (trames, codes, ordre des lectures). Avec n = 4 le format est identique octet pour
-octet : firmwares et workspaces existants inchangés.
+Les commandes à adresse 64 bits portent le flag **`ADDR64_FLAG = 0x10`** dans l'octet commande :
 
-Pas de négociation : la taille est configurée des deux côtés. Une incohérence désaligne les commandes ;
-le sanity check (§4) évite alors le crash de la simulation. Une commande d'identification (taille
-d'adresse, version) est une évolution possible, hors périmètre.
+| Commande | 32 bits | 64 bits |
+|---|---|---|
+| `CMD_READ_PERIODIC` | `0x43` | `0x53` |
+| `CMD_READ_APERIODIC` | `0x44` | `0x54` |
+| `CMD_WRITE_APERIODIC` | `0x25` | `0x35` |
+
+Rien d'autre ne change (trames, en-tête `0x43` des trames de données, ordre des lectures). En 32 bits le
+format est identique octet pour octet : firmwares et workspaces existants inchangés.
+
+### Incohérence de taille : erreur, pas d'identification
+
+Pas de commande d'identification : la taille est configurée des deux côtés, et c'est le flag qui rend une
+incohérence **détectable dès la première commande**, sans désaligner le parse. Une cible qui reçoit une
+commande lecture / écriture dont la taille d'adresse (flag) n'est pas la sienne répond l'erreur
+**`ERR_ADDRSIZE`** (§4), avec sa propre taille en payload. Sans le flag, des adresses 64 bits envoyées à une
+cible 32 bits seraient lues comme des commandes (l'octet `0x01` d'une adresse `0x1_8000_5A40` serait pris
+pour `CMD_DEINIT`).
+
+Firmwares publiés avant cette évolution : `0x53` / `0x54` / `0x35` sont des commandes inconnues, ignorées →
+pas de trame, `Timeout` côté eScope (pas de message explicite, mais pas de comportement dangereux).
 
 ### Côté cible (`eScopeProtocolV3.c`, `eScopeProtocolV3Id.c`)
 
@@ -86,6 +103,7 @@ d'adresse, version) est une évolution possible, hors périmètre.
   la taille du buffer de config) pilote réellement le format : `CMD_SIZE` et `CMD_DATA_IDX` en dérivent,
   l'adresse est décodée par une boucle sur `ESCOPE_PROTOCOL_ADDRESS_SIZE` octets dans un `uint64_t`
   (`uint32_t` si 4).
+- Au parse : `ADDR64_FLAG` présent ⇔ `ESCOPE_PROTOCOL_ADDRESS_SIZE == 8`, sinon `ERR_ADDRSIZE`.
 - Le cast `(uint8_t*)((uint32_t)…)` (V3.c l. 163 et 221) devient `ESCOPE_ADDR_TO_PTR(addr)` (§3), dont la
   forme par défaut passe par `uintptr_t` : plus de troncature sur x64.
 - Valeurs acceptées : 4 ou 8 (`#error` sinon).
@@ -98,7 +116,7 @@ d'adresse, version) est une évolution possible, hors périmètre.
 | `Device` (json) | nouvelle propriété `AddressSize` (octets, 4 par défaut ; 8 possible en V3) ; workspaces existants : 4 |
 | `DeviceEdit` | choix « Adresses : 32 bits / 64 bits », actif en V3 seulement |
 | `IProtocol` | adresses en `UInt64` (`ReadMem`, `WriteMem`, `ReadMemRegister`) |
-| `ProtocolV3` | `AddressSize` passé au constructeur (`IProtocol.New`) ; `CMD_SIZE = 2 + AddressSize` ; sérialisation sur n octets ; une adresse qui ne tient pas sur n octets est refusée (log, `onReadFailed`) |
+| `ProtocolV3` | `AddressSize` passé au constructeur (`IProtocol.New`) ; `CMD_SIZE = 2 + AddressSize` ; `ADDR64_FLAG` si 8 ; sérialisation sur n octets ; une adresse qui ne tient pas sur n octets est refusée (log, `onReadFailed`) ; codes d'erreur traités (§4) |
 | `ProtocolV1` / `V2` | gardent 32 bits ; adresse > `0xFFFFFFFF` refusée (log) |
 | `Channel.Address`, `Watch.Data.Address` | `UInt64` (lecture json compatible : un nombre 32 bits se relit en 64) |
 | `utils.strToAddress` / `AddressToStr`, `ChannelEdit` (validation), `AutomationService.Target` | `UInt64` |
@@ -170,37 +188,52 @@ commise, lisible / inscriptible). Sur cible réelle le même hook peut contrôle
 Une seule fois, **au parse** de la commande (lecture périodique, lecture one-shot, écriture), pas à
 chaque échantillon : coût nul en régime établi.
 
-### Comportement
+### Comportement : code d'erreur
 
-| Commande invalide | Effet cible |
-|---|---|
-| lecture (périodique / one-shot) | gardée dans la config (la disposition de la trame attendue par le PC est conservée) mais marquée invalide : ses octets valent 0 dans les trames |
-| écriture | ignorée |
+Une commande (lecture périodique / one-shot, écriture) dont l'adresse est refusée n'est pas exécutée : la
+cible passe en erreur par le mécanisme existant (`eScopeProtocol_Error`, comme `ERR_TXOVF` /
+`ERR_CFGOVF`) : réception en cours abandonnée, trame d'erreur répétée à chaque tick jusqu'au prochain
+`CMD_CLEAR`.
 
-et, dans les deux cas, une **trame de notification** `ERR_ADDR` envoyée au tick du parse, à la place de la
-trame de données :
+### Codes d'erreur ajoutés
 
 ```
-55  flowId  dataSize=n+1  88  [ADDR_0 … ADDR_{n-1}]  [SIZE]  AA
-ERR_ADDR = ERR_FLAG | 0x08 = 0x88
+ERR_ADDR      0x88   ERR_FLAG | 0x08   adresse refusée par ESCOPE_ADDR_IS_VALID
+ERR_ADDRSIZE  0x8A   ERR_FLAG | 0x0A   taille d'adresse de la commande ≠ celle de la cible (§2)
+                                       (0x89 = ERR_BWOVF, Arduino)
 ```
 
-Contrairement à `ERR_TXOVF` / `ERR_CFGOVF`, elle n'est **pas collante** : envoyée une fois, l'acquisition
-continue. Elle consomme un tick : eScope la compte comme **un échantillon perdu** (`FrameComplete` avec un
-dictionnaire vide → `AddLost(1)`), la base de temps reste alignée.
+Les trames d'erreur actuelles ont `dataSize = 0`. Ces deux codes ajoutent un payload pour qu'eScope sache
+quoi corriger (le format de trame le permet déjà, `TryReadFrame` lit `dataSize` octets quel que soit le
+code) :
 
-Le marquage « invalide » utilise un bit libre de l'octet commande stocké dans le buffer de config
-(`INVALID_FLAG = 0x10`), effacé par `CMD_CLEAR`.
+```
+ERR_ADDR      55  flowId  n+1  88  [ADDR_0 … ADDR_{n-1}]  [SIZE]  AA    commande fautive
+ERR_ADDRSIZE  55  flowId  1    8A  [ESCOPE_PROTOCOL_ADDRESS_SIZE]  AA   taille attendue par la cible
+```
 
 ### Côté eScope
 
-- `ProtocolV3.TryReadFrame` : `ERR_ADDR` → échantillon perdu + événement `AddressError(address, size)`.
-- Lecture one-shot en attente à cette adresse : `onReadFailed` (sa donnée à 0 dans la trame suivante est
-  ignorée) → Watch / GDB / automation voient un échec, pas une valeur 0.
-- Canal acquis à cette adresse : log + état « adresse invalide » dans le panneau latéral (comme un symbole
-  non résolu).
-- Firmwares sans le hook : jamais d'`ERR_ADDR`, comportement actuel. eScope actuel recevant un `ERR_ADDR` :
-  le logue, perd un échantillon de base de temps une fois.
+Aujourd'hui une trame d'erreur est seulement loguée : les trames de données s'arrêtent, le `Timeout` (1 s)
+reconfigure à l'identique, et l'erreur revient en boucle. `ProtocolV3` traite désormais les codes d'erreur :
+
+- **Base de temps** : chaque trame d'erreur occupe un tick de la cible → comptée comme **un échantillon
+  perdu** (`FrameComplete` avec un dictionnaire vide → `AddLost(1)`) : l'axe de temps reste aligné, le
+  trou est visible sur les canaux.
+- **`ERR_ADDR`** : la commande fautive (adresse + taille du payload) est retirée de la config ; lecture
+  one-shot → `onReadFailed` (Watch / GDB / automation voient un échec, pas une valeur) ; écriture →
+  abandonnée, loguée ; lecture périodique → canal désenregistré et marqué « adresse invalide » dans le
+  panneau latéral (comme un symbole non résolu). Puis `Reconfigure` (`CMD_CLEAR` + le reste de la config) :
+  les autres canaux repartent.
+- **`ERR_ADDRSIZE`** : erreur de configuration du device → message à l'utilisateur (« la cible attend des
+  adresses de n octets »), plus de reconfiguration automatique (sinon boucle) jusqu'à modification du
+  device ou nouveau démarrage de l'acquisition.
+- **`ERR_TXOVF` / `ERR_CFGOVF`** : même remontée à l'utilisateur (aujourd'hui seulement dans le log) ;
+  hors périmètre de cette évolution au-delà du message.
+- Événement `IProtocol.Error(code, payload)` levé sur le thread de `Process()`, comme `Timeout`.
+
+Compatibilité : un firmware sans le hook ne produit jamais `ERR_ADDR`. Un eScope actuel recevant ces codes
+les logue comme les autres erreurs (comportement actuel).
 
 ---
 
@@ -259,21 +292,20 @@ Pas de DWARF : `SymbolGDB` inutilisable avec `cl`.
 
 | Phase | Contenu | Validation |
 |---|---|---|
-| 1 | eScope : adresses `UInt64`, `Device.AddressSize`, format V3 sur n octets, `SymbolMap` 64 bits | `sim_v3.py --addr-size 8` (nouvelle option : base RAM au-delà de 4 Go) ; non-régression `--addr-size 4` et cibles réelles |
-| 2 | Cible : `ESCOPE_PROTOCOL_ADDRESS_SIZE` effectif, `ESCOPE_ADDR_TO_PTR`, `ESCOPE_ADDR_IS_VALID`, `ERR_ADDR` (V3 et V3Id) ; eScope : `ERR_ADDR` | `sim_v3.py` émet `ERR_ADDR` hors RAM ; NUCLEO / RA4E1 inchangés |
+| 1 | eScope : adresses `UInt64`, `Device.AddressSize`, format V3 sur n octets + `ADDR64_FLAG`, `SymbolMap` 64 bits | `sim_v3.py --addr-size 8` (nouvelle option : base RAM au-delà de 4 Go) ; non-régression `--addr-size 4` et cibles réelles |
+| 2 | Cible : `ESCOPE_PROTOCOL_ADDRESS_SIZE` effectif, `ADDR64_FLAG`, `ESCOPE_ADDR_TO_PTR`, `ESCOPE_ADDR_IS_VALID`, `ERR_ADDR` / `ERR_ADDRSIZE` (V3 et V3Id) ; eScope : traitement des codes d'erreur | `sim_v3.py` émet `ERR_ADDR` hors RAM et `ERR_ADDRSIZE` sur taille incohérente ; NUCLEO / RA4E1 inchangés |
 | 3 | Symboles : map MSVC | maps MSVC x86 / x64 de l'exemple |
-| 4 | Exemple `targetExamples/pcsim/` : firmware C (build MSVC et MinGW, DLL x86 et x64), `eScopeCfg.h` PC, petit host C# (scheduler 1 ms + relais UART ⇄ TCP), workspace | les 4 combinaisons chaîne × archi : lecture, écriture, Watch, adresse invalide, relocation forcée (`/DYNAMICBASE` + base occupée) |
+| 4 | Exemple `targetExamples/pcsim/` : firmware C (build MSVC et MinGW, DLL x86 et x64), `eScopeCfg.h` PC, petit host C# (scheduler 1 ms + driver UART simulé relayé en TCP), workspace | les 4 combinaisons chaîne × archi : lecture, écriture, Watch, adresse invalide, relocation forcée (`/DYNAMICBASE` + base occupée) |
 | 5 | Docs : `api.md` (format filaire, `ERR_ADDR`, `IProtocol`), `architecture.md`, tutoriel FR / EN | — |
 | option | `SymbolPdb` (dbghelp) ; `eScopeTransportTcp.c` serveur pour un firmware PC autonome | — |
 
 Le portage Linux (`worktree-linux-port-core`) touche les mêmes fichiers (`IProtocol`, `ProtocolV3`,
 `Device`) : la phase 1 est à reporter sur cette branche.
 
-## Questions ouvertes
+## Décisions
 
-- `ERR_ADDR` à la place de la trame de données (un échantillon perdu) vs. notification portée par la trame
-  de données (format modifié, incompatible avec les eScope actuels) : le design retient la première.
-- Commande d'identification (taille d'adresse, version du protocole) pour détecter une configuration
-  incohérente : utile aussi hors simulation, à traiter à part.
-- Relais : dans le simulateur de l'utilisateur, ou fourni comme brique réutilisable (classe C#
-  `EScopeUartRelay`) dans l'exemple ?
+- Adresse refusée → **code d'erreur** `ERR_ADDR` (mécanisme d'erreur existant, collant jusqu'au
+  `CMD_CLEAR`), payload = commande fautive.
+- **Pas de commande d'identification** : incohérence de taille d'adresse détectée par `ADDR64_FLAG`,
+  signalée par `ERR_ADDRSIZE`.
+- Relais UART ⇄ TCP **dans la couche driver UART du simulateur**.
