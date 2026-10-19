@@ -12,7 +12,7 @@ namespace eScope.Protocol
         public class MemData
         {
             public uint cmd = 0;
-            public UInt32 address = 0;
+            public UInt64 address = 0;
             public int size = 0;
             public UInt64 data = 0;
             public uint token = 0;
@@ -50,12 +50,19 @@ namespace eScope.Protocol
         readonly System.Diagnostics.Stopwatch pendingReadTime = new();
         const int READ_APERIODIC_TIMEOUT_MS = 1000;
         Pipe pipe;
-        ConcurrentQueue<(byte[] data, int lost)> frameQueue;
+        // err: 0 for a data frame, else the error code of an error frame (payload in data)
+        ConcurrentQueue<(byte[] data, int lost, uint err)> frameQueue;
         readonly FlowCounter flow = new("ProtocolV3");
         uint readMemToken = 0;
         CancellationTokenSource cts;
         public event Action<int, IReadOnlyDictionary<uint, UInt64>>? FrameComplete;
         public event Action? Timeout;
+        public event Action<string>? Error;
+        // error frames are repeated by the device until CMD_CLEAR: handled once, until a data frame,
+        // a timeout or a new link
+        bool bErrorHandled = false;
+        // configuration not accepted by the device (address size): no reconfiguration until Start() or a new link
+        bool bConfigError = false;
         volatile bool bTimeoutFlag = false; // set by the timer thread, handled in Process()
         public bool SupportsReadMem => true;
         public bool IsConnected => State == State_t.capturing;
@@ -73,7 +80,13 @@ namespace eScope.Protocol
         public const uint CMD_READ_APERIODIC = 0x04 | READ_FLAG;
         public const uint CMD_WRITE_APERIODIC = 0x05 | WRITE_FLAG;
         public const uint ERR_TXOVERFLOW = 0x06 | ERR_FLAG;
-        public const uint CMD_SIZE = 6U; /* CMDx1 + ADDRESSx4 + SIZEx1 */
+        public const uint ERR_CFGOVERFLOW = 0x07 | ERR_FLAG;
+        public const uint ERR_ADDR = 0x08 | ERR_FLAG;      // address rejected by the device: payload address + size
+        public const uint ERR_BWOVERFLOW = 0x09 | ERR_FLAG; // Arduino
+        public const uint ERR_ADDRSIZE = 0x0A | ERR_FLAG;  // address size of the device differs: payload its size
+        public const uint ADDR64_FLAG = 0x10; // read / write command with a 64 bits address
+        readonly int AddressSize; // address bytes on the wire: 4, or 8 (64 bits target)
+        uint CMD_SIZE => 2U + (uint)AddressSize; /* CMDx1 + SIZEx1 + ADDRESSxN */
         public const uint CMD_IDX = 0U;
         public const uint CMD_SIZE_IDX = 1U;
         public const uint CMD_ADDR_IDX = 2U;
@@ -89,8 +102,9 @@ namespace eScope.Protocol
         private float _unpackBudgetPerTick = 1.0f; // frames to process per tick
         private float _unpackBudgetAccumulator = 0f;
         private int tickCnt = 0;
-        public ProtocolV3(string com)
+        public ProtocolV3(string com, int addressSize = 4)
         {
+            AddressSize = (addressSize == 8) ? 8 : 4;
             hCom = ICom.Get(com);
             opener = new ComOpener(hCom);
             configTxList = new List<MemData> {};
@@ -129,12 +143,12 @@ namespace eScope.Protocol
             int cfgIdx = 0;
             foreach (var d in burst)
             {
-                Config[cfgIdx++] = (byte)d.cmd;
+                Config[cfgIdx++] = (byte)(d.cmd | ((AddressSize == 8) ? ADDR64_FLAG : 0));
                 Config[cfgIdx++] = (byte)d.size;
-                Config[cfgIdx++] = (byte)((d.address >> 0) & 0xFF);
-                Config[cfgIdx++] = (byte)((d.address >> 8) & 0xFF);
-                Config[cfgIdx++] = (byte)((d.address >> 16) & 0xFF);
-                Config[cfgIdx++] = (byte)((d.address >> 24) & 0xFF);
+                for (int i = 0; i < AddressSize; i++)
+                {
+                    Config[cfgIdx++] = (byte)((d.address >> (i * 8)) & 0xFF);
+                }
 
                 if(d.cmd == CMD_WRITE_APERIODIC)
                 {
@@ -174,6 +188,7 @@ namespace eScope.Protocol
         public void Start()
         {
             bRun = true;
+            bConfigError = false;
             opener.ResetRetryDelay();
         }
         public void Stop()
@@ -226,9 +241,9 @@ namespace eScope.Protocol
                 var result = await reader.ReadAsync(token);
                 var buffer = result.Buffer;
 
-                while (TryReadFrame(ref buffer, out var payload))
+                while (TryReadFrame(ref buffer, out var payload, out uint err))
                 {
-                    frameQueue.Enqueue((payload, flow.Take()));
+                    frameQueue.Enqueue((payload, flow.Take(), err));
                 }
 
                 reader.AdvanceTo(buffer.Start, buffer.End);/*?? */
@@ -237,9 +252,10 @@ namespace eScope.Protocol
 
             await reader.CompleteAsync();
         }
-        bool TryReadFrame(ref ReadOnlySequence<byte> buffer, out byte[] payload)
+        bool TryReadFrame(ref ReadOnlySequence<byte> buffer, out byte[] payload, out uint err)
         {
             payload = Array.Empty<byte>();
+            err = 0;
             var reader = new SequenceReader<byte>(buffer);
 
             while (reader.Remaining >= HEADER_SIZE + FOOTER_SIZE)
@@ -295,7 +311,9 @@ namespace eScope.Protocol
                 }
                 else if ((cmd & ERR_FLAG) != 0)
                 {
-                    Console.WriteLine($"ProtocolV3 Err Rx : 0x{cmd:X}");
+                    payload = frameSeq.Slice(HEADER_SIZE, dataSize).ToArray();
+                    err = cmd;
+                    return true;
                 }
                 else if (cmd == CMD_DEBUG)
                 {
@@ -355,6 +373,12 @@ namespace eScope.Protocol
                 int i = 0;
                 int cmdIdx = 0;
                 unpackFrame++;
+                if (f.err != 0)
+                {
+                    HandleError(f.err, data, f.lost);
+                    continue;
+                }
+                bErrorHandled = false;
                 timeout?.Stop();
                 timeout?.Start();
 
@@ -423,9 +447,59 @@ namespace eScope.Protocol
 
             //Console.WriteLine($"Unpack {framCount} queued => processing {_unpackBudgetPerTick}");
         }
+        // error frame: sent by the device on the tick of a sample, until CMD_CLEAR
+        void HandleError(uint err, byte[] data, int lost)
+        {
+            // the time base goes on: the error frame is a lost sample
+            if (bRun)
+                FrameComplete?.Invoke(lost, new Dictionary<uint, UInt64>());
+            if (bErrorHandled)
+                return;
+            bErrorHandled = true;
+            Console.WriteLine($"ProtocolV3 Err Rx : 0x{err:X} {BitConverter.ToString(data)}");
+
+            if ((err == ERR_ADDR) && (data.Length >= AddressSize + 1))
+            {
+                UInt64 address = 0;
+                for (int i = 0; i < AddressSize; i++)
+                {
+                    address |= (UInt64)data[i] << (i * 8);
+                }
+                int size = data[AddressSize];
+                // the rejected read is not sent again (a rejected write is only dropped by the device)
+                var rejected = configRxList.Where(d => (d.address == address) && (d.size == size)).ToList();
+                configRxList.RemoveAll(d => rejected.Contains(d));
+                foreach (var d in rejected.Where(d => d.cmd == CMD_READ_APERIODIC))
+                {
+                    if (d == pendingRead)
+                        pendingRead = null;
+                    d.onReadFailed?.Invoke();
+                }
+                Error?.Invoke($"address 0x{address:X} ({size} B) rejected by the device");
+                bReconfig = true; // the other commands sent again
+            }
+            else if ((err == ERR_ADDRSIZE) && (data.Length >= 1))
+            {
+                bConfigError = true;
+                Error?.Invoke($"the device expects {data[0] * 8} bits addresses, configured with {AddressSize * 8} bits");
+            }
+            else
+            {
+                string name = err switch
+                {
+                    ERR_TXOVERFLOW => "data frame too small for the channels (ERR_TXOVF)",
+                    ERR_CFGOVERFLOW => "configuration buffer full (ERR_CFGOVF)",
+                    ERR_BWOVERFLOW => "bandwidth exceeded (ERR_BWOVF)",
+                    _ => $"error 0x{err:X2}",
+                };
+                Error?.Invoke($"device {name}"); // reconfigured on timeout
+            }
+        }
         // com opened by the ComOpener: start reading it
         void StartReading()
         {
+            bErrorHandled = false;
+            bConfigError = false; // firmware may have changed: checked again by the device
             pipe = new();
             frameQueue = new();
             flow.Resync();
@@ -469,7 +543,7 @@ namespace eScope.Protocol
             FailReads(configRxList);
             FailReads(configTxList);
         }
-        public void ReadMem(UInt32 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
+        public void ReadMem(UInt64 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
         {
             //Console.WriteLine($"ProtocolV3 Read Mem 0x{address:X}:{size}");
             if ((State != State_t.capturing) && opener.InRetryDelay)
@@ -487,7 +561,7 @@ namespace eScope.Protocol
             d.token = readMemToken++;
             configTxList.Add(d);
         }
-        public uint ReadMemRegister(UInt32 address, int size)
+        public uint ReadMemRegister(UInt64 address, int size)
         {
             //Console.WriteLine($"ProtocolV3 Register Read Mem 0x{address:X}:{size}");
             MemData d = new MemData();
@@ -543,7 +617,7 @@ namespace eScope.Protocol
             frameQueue.Clear();
             flow.Resync();
         }
-        public void WriteMem(UInt32 address, int size, UInt64 data) // /!\ Call be timer thread and com thread
+        public void WriteMem(UInt64 address, int size, UInt64 data) // /!\ Call be timer thread and com thread
         {
             //Console.WriteLine($"ProtocolV3 WriteMem0x{address:X}:{size}:{data}");
             linkActivity.Restart(); // opens the link if needed
@@ -600,9 +674,21 @@ namespace eScope.Protocol
                     case State_t.capturing:
                         frameUnpack();
                         bool failReads = false;
+                        if (bConfigError)
+                        {
+                            // device configuration to change: nothing sent, the one shot accesses fail
+                            bTimeoutFlag = false;
+                            bReconfig = false;
+                            FailReads(configTxList);
+                            configTxList.RemoveAll(d => d.cmd == CMD_WRITE_APERIODIC);
+                            FailReads(configRxList);
+                            pendingRead = null;
+                            break;
+                        }
                         if (bTimeoutFlag)
                         {
                             bTimeoutFlag = false;
+                            bErrorHandled = false;
                             if (HasPeriodic) // no frame expected otherwise
                             {
                                 Timeout?.Invoke();
@@ -613,6 +699,7 @@ namespace eScope.Protocol
                         if ((pendingRead != null) && (pendingReadTime.ElapsedMilliseconds > READ_APERIODIC_TIMEOUT_MS))
                         {
                             Console.WriteLine($"ProtocolV3 one shot read timeout 0x{pendingRead.address:X}");
+                            bErrorHandled = false;
                             bReconfig = true;
                             failReads = true;
                         }

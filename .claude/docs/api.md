@@ -12,13 +12,13 @@ public interface IProtocol
     void Dispose();          // Ferme le port, annule les tâches background
 
     // Lecture/écriture one-shot (apériodique) — V3 uniquement
-    void ReadMem(UInt32 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null);
-    void WriteMem(UInt32 address, int size, UInt64 data);
+    void ReadMem(UInt64 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null);
+    void WriteMem(UInt64 address, int size, UInt64 data);
     bool SupportsReadMem => false;   // true en V3
     bool IsConnected { get; }        // liaison ouverte (état capturing), avec ou sans acquisition
 
     // Lecture périodique (channel live) : valeurs livrées par FrameComplete, indexées par token
-    uint ReadMemRegister(UInt32 address, int size);
+    uint ReadMemRegister(UInt64 address, int size);
     void ReadMemUnregister(uint token);
 
     // une fois par trame périodique reçue : nombre de trames perdues juste avant, token → valeur
@@ -26,12 +26,19 @@ public interface IProtocol
     event Action<int, IReadOnlyDictionary<uint, UInt64>>? FrameComplete;
     // aucune trame reçue depuis 1 s alors que des lectures périodiques sont configurées
     event Action? Timeout;
+    // erreur signalée par le device (trame d'erreur), message pour l'utilisateur (logué par Device)
+    event Action<string>? Error;      // V3 ; implémentation vide par défaut
 
     // Fabrique
-    static IProtocol? New(string protocol, string com);
-    // protocol : "V1" | "V2" | "V3"
+    static IProtocol? New(string protocol, string com, int addressSize = 4);
+    // protocol : "V1" | "V2" | "V3" ; addressSize : octets d'adresse sur le fil (V3 : 4 ou 8, Device.AddressSize)
 }
 ```
+
+Adresses en `UInt64` partout (`Channel.Address`, `Watch.Data.Address`, automation, `GdbRemoteBridge`) : une
+cible PC 64 bits (firmware simulé, voir [pc-simulation.md](pc-simulation.md)) a des adresses au-delà de 4 Go.
+V1 / V2 et V3 en 4 octets n'envoient que les 32 bits de poids faible (troncature, comme avant pour l'AVR
+`0x80xxxx` donné par GDB).
 
 `size` est en **bits** (8, 16, 32, 64) ; le fil transporte des octets (`size / 8`).
 
@@ -111,14 +118,17 @@ public class SymbolData
 
 ### PC → Device (configuration)
 
-6 octets par commande :
+`2 + n` octets par commande, n = taille d'adresse (4, ou 8 pour une cible 64 bits) :
 ```
-[CMD][SIZE][ADDR_0][ADDR_1][ADDR_2][ADDR_3]
+[CMD][SIZE][ADDR_0 … ADDR_{n-1}]
 ```
 Pour `CMD_WRITE_APERIODIC`, SIZE octets de données suivent immédiatement.
 `CMD_CLEAR` est envoyé seul (1 octet) ; ce qui le suit dans le même envoi est ignoré.
 
-Adresse en little-endian 32 bits.
+Adresse en little-endian. Avec n = 8, les commandes lecture / écriture portent `ADDR64_FLAG` (0x10) :
+`0x53`, `0x54`, `0x35`. La cible compare ce flag à sa propre taille (`ESCOPE_PROTOCOL_ADDRESS_SIZE`) et
+répond `ERR_ADDRSIZE` s'ils diffèrent (pas de commande d'identification). Firmwares antérieurs : commandes
+inconnues, ignorées (timeout côté PC).
 
 ### Device → PC (trame de données)
 
@@ -128,8 +138,14 @@ Adresse en little-endian 32 bits.
 sync                                  footer
 ```
 
-Payload : données des lectures dans l'ordre de configuration. Trame d'erreur : `dataSize = 0`,
-`cmd` = code d'erreur, répétée jusqu'au prochain `CMD_CLEAR`.
+Payload : données des lectures dans l'ordre de configuration. Trame d'erreur : `cmd` = code d'erreur,
+répétée à chaque tick jusqu'au prochain `CMD_CLEAR` ; `dataSize = 0` sauf `ERR_ADDR` (adresse sur n octets
++ taille de la commande refusée) et `ERR_ADDRSIZE` (taille d'adresse de la cible, 1 octet).
+
+Côté PC (`ProtocolV3.HandleError`) : chaque trame d'erreur compte pour un échantillon perdu (base de temps
+alignée) ; l'erreur est signalée une fois (`IProtocol.Error`) ; `ERR_ADDR` → commande retirée (lecture
+one-shot : `onReadFailed`), reconfiguration du reste ; `ERR_ADDRSIZE` → plus aucun envoi jusqu'au prochain
+`Start()` ou à la réouverture de la liaison ; autres codes → reconfiguration sur timeout (comme avant).
 
 **Exemple** — lecture 2 octets @ 0x20000100 (valeur 0x1234) :
 ```
@@ -165,7 +181,10 @@ CMD_READ_APERIODIC  0x44   READ_FLAG       | 0x04
 CMD_WRITE_APERIODIC 0x25   WRITE_FLAG(0x20)| 0x05
 ERR_TXOVF           0x86   ERR_FLAG(0x80)  | 0x06   trame TX trop petite
 ERR_CFGOVF          0x87   ERR_FLAG        | 0x07   buffer de config plein
+ERR_ADDR            0x88   ERR_FLAG        | 0x08   adresse refusée par ESCOPE_ADDR_IS_VALID
 ERR_BWOVF           0x89   ERR_FLAG        | 0x09   bande passante dépassée (Arduino uniquement)
+ERR_ADDRSIZE        0x8A   ERR_FLAG        | 0x0A   taille d'adresse de la commande ≠ celle de la cible
+ADDR64_FLAG         0x10   dans CMD lecture / écriture : adresse sur 8 octets
 ```
 
 ---
@@ -193,3 +212,10 @@ public:
 
 API C générique (`eScopeProtocol/eScopeProtocol.h`) : `eScopeProtocol_Init()`,
 `eScopeProtocol_Process()` (à période fixe), `eScopeProtocol_isEnd()`, `eScopeProtocol_DeInit()`.
+
+Hooks optionnels de `eScopeCfg.h` (V3 / V3Id) :
+- `ESCOPE_PROTOCOL_ADDRESS_SIZE` : 4, ou 8 (cible 64 bits) ; fixe le format des commandes.
+- `ESCOPE_ADDR_TO_PTR(addr)` : adresse reçue (adresse de link des symboles) → pointeur ; défaut identité ;
+  firmware DLL simulé : relocation (`__ImageBase`).
+- `ESCOPE_ADDR_IS_VALID(ptr, size)` : contrôle d'un accès, une fois à la réception de la commande ;
+  refus → `ERR_ADDR` ; défaut `true`.

@@ -7,7 +7,7 @@ namespace eScope.Watch
         // "Device.expression": variable name, or any C expression with GDB symbols
         public string Expression { get; set; }
         public string Device { get; set; }
-        public UInt32 Address { get; set; }
+        public UInt64 Address { get; set; }
         public int Size { get; set; }
         public int Shift { get; set; }
         public Utils.Display Display { get; set; }

@@ -113,6 +113,7 @@ namespace eScope.Automation
 
         static double? Finite(double v) => double.IsFinite(v) ? v : null;
 
-        static string FormatAddress(uint address) => $"0x{address:X8}";
+        // 8 hex digits, 16 for a 64 bits address
+        static string FormatAddress(UInt64 address) => (address > UInt32.MaxValue) ? $"0x{address:X16}" : $"0x{address:X8}";
     }
 }

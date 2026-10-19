@@ -183,19 +183,19 @@ namespace eScope
             UInt64 mask = size >= 64 ? UInt64.MaxValue : ((1UL << size) - 1);
             return (y & mask) << shift;
         }
-        static public UInt32 strToAddress(string str)
+        static public UInt64 strToAddress(string str)
         {
             if (str.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 str = str.Substring(2);
             }
-            if (UInt32.TryParse(str, System.Globalization.NumberStyles.HexNumber, null, out UInt32 address) == false)
+            if (UInt64.TryParse(str, System.Globalization.NumberStyles.HexNumber, null, out UInt64 address) == false)
             {
                 address = 0;
             }
             return address;
         }
-        static public string AddressToStr(UInt32 address)
+        static public string AddressToStr(UInt64 address)
         {
             return "0x" + address.ToString("x");
         }
