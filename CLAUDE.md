@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [.claude/docs/constraints.md](.claude/docs/constraints.md) — ce qu'on ne fait pas, protocoles dépréciés
 - [.claude/docs/rtt-transport.md](.claude/docs/rtt-transport.md) — transport SEGGER RTT (ComRtt + bridge Python)
 - [.claude/docs/automation.md](.claude/docs/automation.md) — pilotage par IA / script (serveur MCP + REST)
+- [.claude/docs/pc-simulation.md](.claude/docs/pc-simulation.md) — design : firmware simulé sur PC (DLL GCC / MSVC), adresses 64 bits, relocation
 
 ## Project Overview
 
