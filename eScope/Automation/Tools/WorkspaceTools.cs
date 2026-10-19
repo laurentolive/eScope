@@ -37,8 +37,8 @@ namespace eScope.Automation.Tools
             => new(await svc.RenameTrace(trace, name));
 
         [McpServerTool(Name = "save_workspace", ReadOnly = false, Idempotent = true, OpenWorld = false)]
-        [Description("Saves the workspace (devices, traces, channels, data) to eScope.json in the eScope working " +
-                     "directory, without confirmation.")]
+        [Description("Saves the workspace (devices, traces, channels, data) to its .escope file, without " +
+                     "confirmation. Fails if the workspace was never saved (no file yet).")]
         public async Task<PathResult> SaveWorkspace() => new(await svc.SaveWorkspace());
 
         [McpServerTool(Name = "undo", ReadOnly = false, Idempotent = false, OpenWorld = false)]

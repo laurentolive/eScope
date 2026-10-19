@@ -108,8 +108,11 @@ fréquence, période, rapport cyclique et spectre FFT. Décocher **Show** retire
 
 ## Sauvegarder
 
-- **Ctrl+S** enregistre l'espace de travail (`eScope.json` du dossier courant) : devices, traces,
-  channels, réglages et données. eScope le propose aussi à la fermeture.
+- **Ctrl+S** enregistre l'espace de travail (fichier `.escope`) : devices, traces, channels, réglages
+  et données. eScope le propose aussi à la fermeture. *Files > Save Workspace As...* l'enregistre
+  sous un autre nom.
+- *Files > Open...* (**Ctrl+O**) ouvre un espace de travail (`.escope`) ou une trace (`.etrace`) ; les
+  fichiers peuvent aussi être déposés sur la fenêtre.
 - *Files > Save Trace As...* enregistre la trace courante seule (`.etrace`).
 - *Files > Export Trace (CSV, PNG)...* exporte les données ou l'image.
 

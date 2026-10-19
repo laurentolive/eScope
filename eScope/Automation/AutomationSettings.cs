@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace eScope.Automation
 {
-    // Per-user settings of the automation server, kept out of eScope.json (a workspace can be shared)
+    // Per-user settings of the automation server, kept out of the .escope workspace (it can be shared)
     public class AutomationSettings
     {
         public const int DefaultPort = 47653;

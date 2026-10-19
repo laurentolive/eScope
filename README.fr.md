@@ -127,7 +127,7 @@ Le GDB livré se télécharge avec `powershell -ExecutionPolicy Bypass -File too
 3. Ajouter des **channels** en tapant des noms de variables (ou des expressions).
 4. **Enregistrer** (Ctrl+Espace) : les courbes défilent en temps réel.
 5. Mesurer avec les marqueurs, les deltas et l'analyseur ; suivre les valeurs dans la fenêtre Watch.
-6. L'espace de travail est sauvegardé dans `eScope.json`.
+6. L'espace de travail est sauvegardé dans un fichier `.escope` (à rouvrir par *Files > Open...* ou en le déposant sur la fenêtre).
 
 ## Licence
 

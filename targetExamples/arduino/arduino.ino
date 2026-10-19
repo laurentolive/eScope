@@ -1,12 +1,15 @@
 /*******************************************************************************
- *  basic_scope.ino — exemple d'utilisation de DebugScope
+ *  arduino.ino — exemple DebugScope pour eScope (Arduino Nano / Uno)
  *
- *  Câblage : scope.exe connecté sur Serial (TX1/RX1)
- *  Serial0 reste libre pour debug humain.
+ *  Liaison : Serial (câble USB de la carte), 115200 bauds, trame toutes les 5 ms.
+ *  Serial est occupé par eScope : pas de Serial.print dans ce croquis.
  *
  *  Le firmware ne connaît PAS les variables à envoyer :
- *  scope.exe lit le .elf/.map, envoie les adresses RAM,
+ *  eScope lit le .elf, envoie les adresses RAM,
  *  et le MCU copie la mémoire brute.
+ *
+ *  Dans eScope, ouvrir nano.escope (Files > Open... ou glisser-déposer) :
+ *  il déclare le device Nano et les channels vitesse / courant / position.
  ******************************************************************************/
 
 #include "DebugScope.h"
@@ -63,17 +66,3 @@ void loop()
         scope.update();
     }
 }
-
-// ── Optionnel : serialEvent() sur la plateforme AVR ──────────────────────────
-// Sur AVR, serialEvent() est appelé entre deux loop() si des octets sont dispo.
-// Cela améliore la réactivité RX sans avoir besoin d'un vrai ISR UART.
-// Sur ESP32/STM32, le polling dans update() est suffisant.
-#if defined(ARDUINO_ARCH_AVR)
-void serialEvent1()
-{
-    while (Serial.available())
-    {
-        scope.rxByte((uint8_t)Serial.read());
-    }
-}
-#endif

@@ -1,6 +1,6 @@
 """eScope protocol V3 device simulator (TCP server), 1 ms sampling: a target to try eScope and its automation
 API without hardware. eScope device: transport "TCP:127.0.0.1,47700", protocol V3, map file sim.map,
-sampling time 1 ms (eScope.json of this folder).
+sampling time 1 ms (sim.escope of this folder).
 
 Periodic reads (CMD_READ_PERIODIC), one-shot reads (CMD_READ_APERIODIC), writes (CMD_WRITE_APERIODIC),
 CMD_CLEAR and CMD_DEINIT are served.

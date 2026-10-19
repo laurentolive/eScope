@@ -109,8 +109,10 @@ spectrum.
 
 ## Save
 
-- **Ctrl+S** saves the workspace (`eScope.json` in the current folder): devices, traces, channels,
-  settings and data. eScope also offers it when closing.
+- **Ctrl+S** saves the workspace (`.escope` file): devices, traces, channels, settings and data.
+  eScope also offers it when closing. *Files > Save Workspace As...* saves it under another name.
+- *Files > Open...* (**Ctrl+O**) opens a workspace (`.escope`) or a trace (`.etrace`); files can also
+  be dropped on the window.
 - *Files > Save Trace As...* saves the current trace alone (`.etrace`).
 - *Files > Export Trace (CSV, PNG)...* exports the data or the image.
 

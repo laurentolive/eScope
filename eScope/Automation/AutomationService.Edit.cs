@@ -44,7 +44,10 @@ namespace eScope.Automation
             return name;
         });
 
-        public Task<string> SaveWorkspace() => ui.InvokeAsync(() => scope.WriteWorkspace());
+        public Task<string> SaveWorkspace() => ui.InvokeAsync(() => scope.WorkspacePath != null
+            ? scope.WriteWorkspace()
+            : throw new AutomationException(AutomationError.NotSupported,
+                "the workspace has no file yet: save it once with File > Save Workspace As"));
 
         // the user's history: undoes the last change, made by the AI or by the user
         public Task<string?> Undo() => ui.InvokeAsync(() =>

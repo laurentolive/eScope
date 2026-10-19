@@ -108,9 +108,8 @@ Spécification complète : [.claude/docs/automation.md](../../.claude/docs/autom
 (`motor_current`) qui dépend d'un paramètre modifiable (`motor_cfg`).
 
 1. `python tools/automation/sim/sim_v3.py` (écoute sur 127.0.0.1:47700).
-2. Lancer eScope **depuis le dossier `tools/automation/sim`** (son `eScope.json` déclare le device `Sim` et
-   une trace `Motor`), par exemple `cd tools\automation\sim` puis lancer `eScope.exe` depuis le dossier de
-   build.
+2. Ouvrir `tools/automation/sim/sim.escope` dans eScope (*Files > Open...*, en le déposant sur la fenêtre, ou
+   `eScope.exe tools\automation\sim\sim.escope`) : il déclare le device `Sim` et une trace `Motor`.
 3. Activer le serveur d'automatisation (et *Allow writing target memory* pour la partie écriture).
 4. `python tools/automation/example_motor.py` : ajoute des channels, acquiert, analyse, augmente `motor_cfg`
    et remesure le courant, annote une période, enregistre `out/motor.png` et `out/motor.csv`, puis remet

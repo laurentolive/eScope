@@ -1,0 +1,173 @@
+{
+  "Devices": [
+    {
+      "Name": "Nano",
+      "Com": "Serial:COM3,115200,8,N,1,1",
+      "SymbolFilePath": ".\\build\\arduino.avr.nano\\arduino.ino.elf",
+      "GdbFilePath": "",
+      "MapRegex": "",
+      "Protocol": "V3",
+      "SymbolType": "gdb",
+      "SamplingTime": 5,
+      "V1ChannelMax": 4,
+      "V1DataSize": 16
+    }
+  ],
+  "Traces": [
+    {
+      "Name": "Nano",
+      "XPos": 0,
+      "XWidth": 4000,
+      "XGridDecadeNb": 100,
+      "XGridDecadeVal": 1,
+      "LegendWidth": 100,
+      "DarkMode": 0,
+      "signalNb": 3,
+      "Channels": [
+        {
+          "Id": "92df2fa5-0c2a-411d-9ec6-ce6145add898",
+          "linkXOffset": {
+            "Id": "92df2fa5-0c2a-411d-9ec6-ce6145add898",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYOffset": {
+            "Id": "92df2fa5-0c2a-411d-9ec6-ce6145add898",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYGain": {
+            "Id": "92df2fa5-0c2a-411d-9ec6-ce6145add898",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 5
+            }
+          },
+          "XOffset": 0,
+          "YOffset": 0,
+          "YGain": 5,
+          "Size": 32,
+          "Shift": 0,
+          "Unit": "",
+          "XCreation": 0,
+          "X": [],
+          "UnitRatio": 1,
+          "Display": 3,
+          "IsVisible": true,
+          "hasDevice": true,
+          "SamplingTime": 5,
+          "hasFunction": false,
+          "Script": "return Y[i];",
+          "Y": [],
+          "Symbol": "Nano.vitesse",
+          "Device": "Nano",
+          "Address": 0,
+          "Lost": [],
+          "Name": "vitesse",
+          "Color": "#1F77B4"
+        },
+        {
+          "Id": "92c252c3-03e3-4028-95b4-39d44c9d3000",
+          "linkXOffset": {
+            "Id": "92c252c3-03e3-4028-95b4-39d44c9d3000",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYOffset": {
+            "Id": "92c252c3-03e3-4028-95b4-39d44c9d3000",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYGain": {
+            "Id": "92c252c3-03e3-4028-95b4-39d44c9d3000",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 5
+            }
+          },
+          "XOffset": 0,
+          "YOffset": 0,
+          "YGain": 5,
+          "Size": 32,
+          "Shift": 0,
+          "Unit": "",
+          "XCreation": 0,
+          "X": [],
+          "UnitRatio": 1,
+          "Display": 3,
+          "IsVisible": true,
+          "hasDevice": true,
+          "SamplingTime": 5,
+          "hasFunction": false,
+          "Script": "return Y[i];",
+          "Y": [],
+          "Symbol": "Nano.courant",
+          "Device": "Nano",
+          "Address": 0,
+          "Lost": [],
+          "Name": "courant",
+          "Color": "#FF7F0E"
+        },
+        {
+          "Id": "179dd669-1a9e-4999-b493-a4bcc24a83eb",
+          "linkXOffset": {
+            "Id": "179dd669-1a9e-4999-b493-a4bcc24a83eb",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYOffset": {
+            "Id": "179dd669-1a9e-4999-b493-a4bcc24a83eb",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 0
+            }
+          },
+          "linkYGain": {
+            "Id": "179dd669-1a9e-4999-b493-a4bcc24a83eb",
+            "SrcId": null,
+            "DataRef": {
+              "Data": 5000
+            }
+          },
+          "XOffset": 0,
+          "YOffset": 0,
+          "YGain": 5000,
+          "Size": 32,
+          "Shift": 0,
+          "Unit": "",
+          "XCreation": 0,
+          "X": [],
+          "UnitRatio": 1,
+          "Display": 0,
+          "IsVisible": true,
+          "hasDevice": true,
+          "SamplingTime": 5,
+          "hasFunction": false,
+          "Script": "return Y[i];",
+          "Y": [],
+          "Symbol": "Nano.position",
+          "Device": "Nano",
+          "Address": 0,
+          "Lost": [],
+          "Name": "position",
+          "Color": "#2CA02C"
+        }
+      ],
+      "Markers": [],
+      "Deltas": [],
+      "Annotations": [],
+      "DataMarkers": [],
+      "Watches": []
+    }
+  ]
+}

@@ -11,7 +11,7 @@ namespace eScope
         /// </summary>
 
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
@@ -21,7 +21,8 @@ namespace eScope
 
             ApplicationConfiguration.Initialize();
             Theme.Initialize(UiSettings.Current.DarkMode);
-            Application.Run(new eScope());
+            // eScope.exe [workspace.escope]
+            Application.Run(new eScope(eScope.StartupWorkspace(args)));
         }
     }
 }

@@ -103,8 +103,8 @@ Full specification (design document, French): [.claude/docs/automation.md](../..
 a writable parameter (`motor_cfg`).
 
 1. `python tools/automation/sim/sim_v3.py` (listens on 127.0.0.1:47700).
-2. Start eScope **from the `tools/automation/sim` folder** (its `eScope.json` declares the `Sim` device and a
-   `Motor` trace), e.g. `cd tools\automation\sim` then run `eScope.exe` from the build output.
+2. Open `tools/automation/sim/sim.escope` in eScope (*Files > Open...*, drop it on the window, or
+   `eScope.exe tools\automation\sim\sim.escope`): it declares the `Sim` device and a `Motor` trace.
 3. Enable the automation server (and *Allow writing target memory* for the write part).
 4. `python tools/automation/example_motor.py`: adds channels, acquires, analyses, raises `motor_cfg` and
    measures the current again, annotates one period, saves `out/motor.png` and `out/motor.csv`, then puts

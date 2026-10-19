@@ -31,9 +31,10 @@ variables). Les tutoriels 5 à 7 reprennent la carte STM32 avec les autres liais
 3. Lancer `C:\eScope\eScope.exe`. Le GDB embarqué (`tools\gdb\bin\gdb-multiarch.exe`) est détecté
    tout seul : il sert à lire les symboles du `.elf`.
 
-eScope enregistre son espace de travail (devices, traces, channels) dans `eScope.json`, **dans le
-dossier courant**. Un raccourci par projet, avec le dossier du projet comme dossier de démarrage,
-donne un espace de travail par projet.
+eScope enregistre son espace de travail (devices, traces, channels) dans un fichier `.escope`, un par
+projet : l'ouvrir par *Files > Open...*, en le déposant sur la fenêtre, ou par
+`eScope.exe projet.escope`. Au démarrage, eScope rouvre le dernier espace de travail. Les chemins
+relatifs du fichier (fichier de symboles) partent de son dossier.
 
 Pour la liaison RTT seulement : Python 3 dans le `PATH` et `pip install pyocd` (voir le
 [tutoriel 5](05-stm32-rtt.md)).

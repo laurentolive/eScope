@@ -120,7 +120,7 @@ des threads du pool (une tâche par requête HttpListener).
 
 | Réglage | Défaut | Stockage |
 |---|---|---|
-| Serveur activé | **non** | `%LocalAppData%\eScope\automation.json` (par utilisateur, pas dans `eScope.json` qui peut être partagé) |
+| Serveur activé | **non** | `%LocalAppData%\eScope\automation.json` (par utilisateur, pas dans le workspace `.escope` qui peut être partagé) |
 | Port | 47653 | idem |
 | Écriture sur la target autorisée | **non** | idem |
 | Jeton | aléatoire 32 octets (base64url), généré à la première activation | idem, régénérable |
@@ -199,7 +199,7 @@ demande confirmation sur les outils destructifs.
 | `create_trace` | `name?` | `{name}` (`TraceN` si absent) ; devient la trace courante sauf pendant un enregistrement. Non annulable (comme dans l'UI) |
 | `select_trace` | `trace` | `{name}` ; `BUSY` pendant un enregistrement |
 | `rename_trace` ↺ | `trace?`, `name` | `{name}` |
-| `save_workspace` | — | `{path}` de `eScope.json` (`eScope.WriteWorkspace`, sans dialogue de confirmation) |
+| `save_workspace` | — | `{path}` du `.escope` (`eScope.WriteWorkspace`, sans dialogue de confirmation ; erreur si le workspace n'a pas encore de fichier) |
 | `undo` / `redo` | — | `{done, command}` ; historique **partagé** avec l'utilisateur (peut annuler une action de l'utilisateur) |
 
 ### Devices et symboles

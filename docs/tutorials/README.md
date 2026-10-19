@@ -31,9 +31,10 @@ Tutorials 5 to 7 reuse the STM32 board with the other links.
 3. Run `C:\eScope\eScope.exe`. The bundled GDB (`tools\gdb\bin\gdb-multiarch.exe`) is detected
    automatically: it reads the symbols of the `.elf`.
 
-eScope saves its workspace (devices, traces, channels) to `eScope.json`, **in the current folder**.
-One shortcut per project, with the project folder as the start folder, gives one workspace per
-project.
+eScope saves its workspace (devices, traces, channels) to a `.escope` file, one per project: open it
+with *Files > Open...*, by dropping it on the window, or with `eScope.exe project.escope`. At startup
+eScope reopens the last workspace. Relative paths in the workspace (symbol file) are relative to its
+folder.
 
 For the RTT link only: Python 3 in the `PATH` and `pip install pyocd` (see
 [tutorial 5](05-stm32-rtt.md)).

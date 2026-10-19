@@ -25,17 +25,17 @@ namespace eScope
         private int playBmpToggle = 0;
         private TraceCtrl? loadedTrace = null; // trace whose menus are currently in menuStrip1
         private const string TraceFileFilter = "eScope trace (*.etrace)|*.etrace|All files (*.*)|*.*";
-        private const string WorkspacePath = "eScope.json";
         private static readonly JsonSerializerOptions WorkspaceJsonOptions = new() { WriteIndented = true };
         private byte[]? savedHash; // SHA-256 of the workspace file as last loaded/saved, null if none
         private TextBox? renameBox; // in-place editor over a tab while renaming a trace
         private ToolStripButton? updateButton; // top right, shown only when a newer release is on GitHub
         private List<Release>? releases; // GitHub releases found at startup
 
-        public eScope()
+        public eScope(string? workspace)
         {
             InitializeComponent();
             BuildLayout();
+            InitWorkspaceMenu();
             DpiChanged += (_, _) => UpdateToolbarIcons();
             this.KeyPreview = true;
             this.FormClosing += eScope_FormClosing;
@@ -59,19 +59,23 @@ namespace eScope
             };
             Shown += async (_, _) => await CheckUpdate();
 
-            this.Text = $"eScope {AppVersion}";
-
-            try
+            // current directory = folder of the workspace before the devices are created: relative symbol paths
+            SetWorkspacePath(workspace);
+            if (workspace != null)
             {
-                using var fs = File.OpenRead(WorkspacePath);
-                Data = JsonSerializer.Deserialize<eScopeModel>(fs)!;
-                savedHash = FileHash(WorkspacePath);
-            }
-            catch (Exception ex)
-            {
-                //MessageBox.Show(ex.Message, "Cannot load workspace", MessageBoxButtons.OK);
-                // set default Data if load fails 
-                //return    
+                try
+                {
+                    using var fs = File.OpenRead(workspace);
+                    Data = JsonSerializer.Deserialize<eScopeModel>(fs)!;
+                    savedHash = FileHash(workspace);
+                }
+                catch (Exception ex)
+                {
+                    // new workspace: saving must not overwrite the file that could not be read
+                    MessageBox.Show($"{workspace}\n{ex.Message}", "Cannot load workspace", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Data = new();
+                    SetWorkspacePath(null);
+                }
             }
 
             foreach (var data in Data.Devices)
@@ -90,6 +94,8 @@ namespace eScope
                 newTraceToolStripMenuItem_Click(0, e);
             }
             ActivateCurrentTrace();
+            if (workspacePath == null)
+                savedHash = CurrentHash(); // new workspace: closed untouched, nothing to save
             ApplyTheme();
             // single-key shortcuts need the focus on the plot, not on a side panel list
             Shown += (_, _) => GetCurrentTrace()?.Plot.GetControl().Focus();
@@ -184,24 +190,25 @@ namespace eScope
             }
             else if (result == DialogResult.Yes)
             {
-                WriteWorkspace();
+                return !SaveWorkspace();
             }
             return false;
         }
         // saves the workspace without confirmation, returns the full path of the file
         internal string WriteWorkspace()
         {
+            string path = workspacePath ?? throw new InvalidOperationException("the workspace has no file yet");
             SyncWorkspace();
             // stream directly to disk: large traces overflow a single in-memory string
             // write to a temp file first so a failure does not corrupt the existing workspace
-            string tmpPath = WorkspacePath + ".tmp";
+            string tmpPath = path + ".tmp";
             using (var fs = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 16))
             {
                 JsonSerializer.Serialize(fs, Data, WorkspaceJsonOptions);
             }
-            File.Move(tmpPath, WorkspacePath, true);
-            savedHash = FileHash(WorkspacePath);
-            return Path.GetFullPath(WorkspacePath);
+            File.Move(tmpPath, path, true);
+            savedHash = FileHash(path);
+            return path;
         }
 
         // copy the live traces and devices back into the serializable model
@@ -224,6 +231,11 @@ namespace eScope
         private bool IsModified()
         {
             if (savedHash == null) return true;
+            return !CurrentHash().AsSpan().SequenceEqual(savedHash);
+        }
+
+        private byte[] CurrentHash()
+        {
             SyncWorkspace();
             // hash the serialization on the fly: large traces overflow a single in-memory string
             using var sha = SHA256.Create();
@@ -231,7 +243,7 @@ namespace eScope
             {
                 JsonSerializer.Serialize(cs, Data, WorkspaceJsonOptions);
             }
-            return !sha.Hash!.AsSpan().SequenceEqual(savedHash);
+            return sha.Hash!;
         }
 
         private static byte[]? FileHash(string path)
@@ -337,7 +349,7 @@ namespace eScope
             }
             else if (keyData == (Keys.Control | Keys.S))
             {
-                Save();
+                SaveWorkspace();
             }
             else if (keyData == (Keys.Control | Keys.C))
             {
@@ -440,7 +452,7 @@ namespace eScope
         private void eScope_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Check if the user clicked the close button or if the form is being closed programmatically
-            if (e.CloseReason == CloseReason.UserClosing && IsModified())
+            if (e.CloseReason == CloseReason.UserClosing && !restarting && IsModified())
             {
                 e.Cancel = Save();
             }
@@ -598,13 +610,16 @@ namespace eScope
         }
         private void openTraceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using var dialog = new OpenFileDialog { Filter = TraceFileFilter, Title = "Open Trace" };
+            using var dialog = new OpenFileDialog { Filter = OpenFileFilter, Title = "Open Workspace or Trace", Multiselect = true };
             if (dialog.ShowDialog(this) != DialogResult.OK) return;
-
+            OpenFiles(dialog.FileNames);
+        }
+        private void OpenTraceFile(string path)
+        {
             Trace data;
             try
             {
-                data = TraceCtrl.LoadFromFile(dialog.FileName);
+                data = TraceCtrl.LoadFromFile(path);
             }
             catch (Exception ex)
             {
@@ -796,7 +811,7 @@ namespace eScope
         }
         private void License_StateChanged(object? sender, EventArgs e)
         {
-            this.Text = $"eScope {AppVersion} {LicenseManager.GetLicenseStatusText()}";
+            UpdateTitle();
         }
         // silent startup check: shows the update button when a newer stable release exists
         private async Task CheckUpdate()

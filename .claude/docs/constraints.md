@@ -86,7 +86,7 @@ dépendance Windows dans le code modèle / protocole / symboles.
 - Une trame plus courte que la config est acceptée : les valeurs manquantes sont absentes de `FrameComplete`
 
 ### UI
-- Une seule instance d'eScope par machine (mono-document, un seul `eScope.json`)
+- Mono-document : un workspace (`.escope`) par instance ; en ouvrir un autre relance eScope dessus
 - Pas de plugin système — les parseurs protocole/symboles sont hardcodés
 - Pas de documentation intégrée
 

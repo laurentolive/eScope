@@ -126,7 +126,7 @@ The bundled GDB is downloaded with `powershell -ExecutionPolicy Bypass -File too
 3. Add **channels** by typing variable names (or expressions).
 4. **Record** (Ctrl+Space): the curves scroll in real time.
 5. Measure with markers, deltas and the analyzer; follow values in the Watch window.
-6. The workspace is saved to `eScope.json`.
+6. The workspace is saved to a `.escope` file (*Files > Open...* or drop it on the window to reopen it).
 
 ## License
 

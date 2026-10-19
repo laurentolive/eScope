@@ -65,19 +65,18 @@ battery or PC).
 
 ## 4. Pair the ESP32 with Windows
 
-1. *Settings > Bluetooth & devices > Add device > Bluetooth*: choose **ESP32_BT**.
-2. *Bluetooth & devices > Devices > More Bluetooth settings*, **COM Ports** tab: note the
-   **Outgoing** port associated with `ESP32_BT`. This is the one eScope uses.
+*Settings > Bluetooth & devices > Add device > Bluetooth*: choose **ESP32_BT**.
 
 Windows often creates two ports per device (incoming and outgoing): only the outgoing one lets
-eScope open the connection.
+eScope open the connection. In eScope's port list, the outgoing port carries the device name,
+`COMx (ESP32_BT)`, and incoming ports are marked `(Bluetooth incoming)`.
 
 ## 5. Declare the device in eScope
 
 | Field | Value |
 |---|---|
 | Name | `Nucleo-BT` |
-| Communication | **Serial**, **outgoing** COM port of `ESP32_BT`, baudrate `115200` |
+| Communication | **Serial**, port `COMx (ESP32_BT)`, baudrate `115200` |
 | Symbols | **GDB**, `...\Debug\NUCLEO_C051C8.elf` |
 | Protocol | **V3** |
 | Sampling Time | `5` |

@@ -63,12 +63,20 @@ namespace eScope
                 ComType = "Serial";
             }
 
-            string[] ports = SerialPort.GetPortNames();
+            // "COM14 (ESP32_BT)": the device behind each port, sorted by port number
+            var descriptions = PortInfo.Describe();
+            string[] ports = SerialPort.GetPortNames()
+                .Distinct()
+                .OrderBy(p => int.TryParse(p.AsSpan(3), out int n) ? n : int.MaxValue)
+                .ToArray();
             if (ports.Length > 0)
             {
-                comboBoxPort.Items.AddRange(ports);
-                int selectedIdx = comboBoxPort.FindStringExact(ComArgs[0]);
+                comboBoxPort.Items.AddRange(ports.Select(p => PortInfo.Label(p, descriptions)).ToArray());
+                int selectedIdx = Array.FindIndex(ports, p => p.Equals(ComArgs[0], StringComparison.OrdinalIgnoreCase));
                 comboBoxPort.SelectedIndex = selectedIdx == -1 ? 0 : selectedIdx;
+                // the list is wider than the field: descriptions can be long
+                comboBoxPort.DropDownWidth = Math.Max(comboBoxPort.Width,
+                    comboBoxPort.Items.Cast<string>().Max(s => TextRenderer.MeasureText(s, comboBoxPort.Font).Width) + SystemInformation.VerticalScrollBarWidth);
             }
 
             if (ComType == "Serial")
@@ -208,7 +216,7 @@ namespace eScope
                 {
                     textBoxBaudrate.BackColor = Theme.FieldBack(true);
                 }
-                comText = comType + ":" + comboBoxPort.Text + "," + baudrate.ToString() + ",8,N,1,1";
+                comText = comType + ":" + PortInfo.FromLabel(comboBoxPort.Text) + "," + baudrate.ToString() + ",8,N,1,1";
             }
             else if (radioButtonTCP.Checked)
             {
@@ -344,7 +352,7 @@ namespace eScope
             {
                 string baudrate = int.Parse(textBoxBaudrate.Text).ToString();
                 comType = radioButtonSerial.Text;
-                comText = $"{comType}:{comboBoxPort.Text},{baudrate},8,N,1,1";
+                comText = $"{comType}:{PortInfo.FromLabel(comboBoxPort.Text)},{baudrate},8,N,1,1";
             }
             else if (radioButtonTCP.Checked)
             {

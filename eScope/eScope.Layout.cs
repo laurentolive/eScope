@@ -82,7 +82,6 @@ namespace eScope
                 Padding = new Padding(this.Px(8), 0, this.Px(8), 0),
                 ShowItemToolTips = true,
             };
-            statusRight.Text = Path.GetFullPath(WorkspacePath);
             statusBar.Items.Add(statusRight);
 
             sideHost = new BarPanel(p => p.Panel, AnchorStyles.Right)

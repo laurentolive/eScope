@@ -76,7 +76,21 @@ to ~50 bytes of data. At 1 ms, it only carries 6 bytes.
 Nothing to wire: the USB cable powers the board and carries the serial link. **Close the IDE serial
 monitor**: a COM port can only be opened by one program at a time.
 
-## 4. Declare the device in eScope
+## 4. Open the ready-made workspace
+
+The sketch folder contains `nano.escope`, a workspace that already declares the `Nano` device
+(serial 115200, GDB symbols on `build\arduino.avr.nano\arduino.ino.elf`, V3, 5 ms) and the channels
+`vitesse`, `courant` and `position`.
+
+1. Export the `.elf` first (step 2), then open `nano.escope`: *Files > Open...* (**Ctrl+O**), or drop
+   the file on the eScope window.
+2. *Devices > Nano*: choose the board's **Port**, then **OK**. The list shows the device behind each
+   port, for example `COM5 (USB-SERIAL CH340)`.
+3. **Ctrl+S** to keep the port in `nano.escope`. eScope reopens it at the next start.
+
+Go to [step 6](#6-record). Section 5 describes the same setup made by hand, for your own sketches.
+
+## 5. Or declare the device and channels yourself
 
 *Devices > New*:
 
@@ -97,9 +111,7 @@ monitor**: a COM port can only be opened by one program at a time.
 On AVR, GDB gives RAM addresses with the `0x800000` prefix of the data space
 (`&vitesse` = `0x80011a`): this is normal, the firmware only keeps the 16 useful bits.
 
-## 5. Add the channels and record
-
-*Channels > New* (**Insert** key) for each variable:
+Then *Channels > New* (**Insert** key) for each variable:
 
 | Symbol | Display | Y Gain |
 |---|---|---|
@@ -107,7 +119,9 @@ On AVR, GDB gives RAM addresses with the `0x800000` prefix of the data space
 | `Nano.courant` | Float | 5 |
 | `Nano.position` | Signed Decimal | 5000 |
 
-Then **Space** to record:
+## 6. Record
+
+**Space** to record:
 
 ![vitesse (1 Hz), courant (2 Hz) and position](../img/plot-arduino.png)
 
@@ -118,6 +132,9 @@ The rest (navigation, Watch, measurements) is described in [Getting started](01-
 | Symptom | Likely cause |
 |---|---|
 | The COM port does not open | IDE serial monitor open, or wrong port |
+| No `Nano` device in the *Devices* menu | `nano.escope` not opened: the title bar shows the workspace in use |
+| No COM port for the board, power LED on | charge-only USB cable (no data wires): try another cable |
+| Channels without address | `.elf` exported after eScope was started: restart eScope |
 | No curve, no error | sketch not uploaded, or `Sampling Time` / baudrate different from the firmware |
 | Absurd values on a `float` | *Display* left as *Signed Decimal*: choose *Float* |
 | Curves shifted after changing the sketch | `.elf` not exported again: redo *Export Compiled Binary* |

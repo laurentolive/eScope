@@ -84,14 +84,24 @@ namespace eScope
             loadSymbols();
 
             watcher?.Dispose();
-            watcher = new FileSystemWatcher
+            watcher = null;
+            // symbol folder not created yet (firmware never built): no hot-reload, but no crash at startup
+            string? symbolDir = string.IsNullOrEmpty(Data.SymbolFilePath) ? null : Path.GetDirectoryName(Path.GetFullPath(Data.SymbolFilePath));
+            if (Directory.Exists(symbolDir))
             {
-                Path = Path.GetDirectoryName(Data.SymbolFilePath),
-                Filter = Path.GetFileName(Data.SymbolFilePath),
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
-            };    
-            watcher.Changed += OnFileChanged;
-            watcher.EnableRaisingEvents = true;
+                watcher = new FileSystemWatcher
+                {
+                    Path = symbolDir,
+                    Filter = Path.GetFileName(Data.SymbolFilePath),
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
+                };
+                watcher.Changed += OnFileChanged;
+                watcher.EnableRaisingEvents = true;
+            }
+            else if (symbolDir != null)
+            {
+                LogMsg.Info($"{Data.Name}: symbol folder not found: {symbolDir}");
+            }
 
             Protocol = IProtocol.New(Data.Protocol, Data.Com);
             if (Protocol != null)

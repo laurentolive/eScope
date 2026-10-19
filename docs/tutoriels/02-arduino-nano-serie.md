@@ -77,7 +77,22 @@ porte jusqu'à ~50 octets de données. À 1 ms, elle ne porte que 6 octets.
 Rien à câbler : le câble USB alimente la carte et porte la liaison série. **Fermer le moniteur série**
 de l'IDE : un port COM ne s'ouvre que dans un programme à la fois.
 
-## 4. Déclarer le device dans eScope
+## 4. Ouvrir l'espace de travail prêt à l'emploi
+
+Le dossier du croquis contient `nano.escope`, un espace de travail qui déclare déjà le device `Nano`
+(série 115200, symboles GDB sur `build\arduino.avr.nano\arduino.ino.elf`, V3, 5 ms) et les channels
+`vitesse`, `courant` et `position`.
+
+1. Exporter d'abord le `.elf` (étape 2), puis ouvrir `nano.escope` : *Files > Open...* (**Ctrl+O**),
+   ou déposer le fichier sur la fenêtre d'eScope.
+2. *Devices > Nano* : choisir le **Port** de la carte, puis **OK**. La liste affiche l'appareil derrière
+   chaque port, par exemple `COM5 (USB-SERIAL CH340)`.
+3. **Ctrl+S** pour garder le port dans `nano.escope`. eScope le rouvre au prochain démarrage.
+
+Passer à l'[étape 6](#6-enregistrer). La section 5 décrit la même configuration faite à la main, pour
+vos propres croquis.
+
+## 5. Ou déclarer soi-même le device et les channels
 
 *Devices > New* :
 
@@ -98,9 +113,7 @@ de l'IDE : un port COM ne s'ouvre que dans un programme à la fois.
 Sur AVR, GDB donne les adresses RAM avec le préfixe `0x800000` de l'espace de données
 (`&vitesse` = `0x80011a`) : c'est normal, le firmware ne garde que les 16 bits utiles.
 
-## 5. Ajouter les channels et enregistrer
-
-*Channels > New* (touche **Inser**) pour chaque variable :
+Puis *Channels > New* (touche **Inser**) pour chaque variable :
 
 | Symbol | Display | Y Gain |
 |---|---|---|
@@ -108,7 +121,9 @@ Sur AVR, GDB donne les adresses RAM avec le préfixe `0x800000` de l'espace de d
 | `Nano.courant` | Float | 5 |
 | `Nano.position` | Signed Decimal | 5000 |
 
-Puis **Espace** pour enregistrer :
+## 6. Enregistrer
+
+**Espace** pour enregistrer :
 
 ![vitesse (1 Hz), courant (2 Hz) et position](../img/plot-arduino.png)
 
@@ -119,6 +134,9 @@ La suite (navigation, Watch, mesures) est décrite dans la [prise en main](01-pr
 | Symptôme | Cause probable |
 |---|---|
 | Le port COM ne s'ouvre pas | moniteur série de l'IDE ouvert, ou port faux |
+| Pas de device `Nano` dans le menu *Devices* | `nano.escope` pas ouvert : la barre de titre affiche l'espace de travail utilisé |
+| Aucun port COM pour la carte, LED d'alimentation allumée | câble USB de charge seule (sans fils de données) : essayer un autre câble |
+| Channels sans adresse | `.elf` exporté après le lancement d'eScope : relancer eScope |
 | Aucune courbe, pas d'erreur | croquis non téléversé, ou `Sampling Time` / baudrate différents du firmware |
 | Valeurs absurdes sur un `float` | *Display* laissé en *Signed Decimal* : choisir *Float* |
 | Courbes décalées après une modification du croquis | `.elf` non réexporté : refaire *Exporter les binaires compilés* |

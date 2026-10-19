@@ -14,7 +14,7 @@ eScope est un oscilloscope logiciel pour développeurs embarqués. Il se connect
 4. Cliquer Record → les variables remontent en temps réel
 5. Analyser avec marqueurs, deltas, zoom/pan et l'analyseur
 6. Consulter la Watch window pour les valeurs live, et modifier des variables
-7. Sauvegarder le workspace (`eScope.json`) ou une trace seule (`.etrace`)
+7. Sauvegarder le workspace (`.escope`) ou une trace seule (`.etrace`) ; les rouvrir par *Files > Open...* ou glisser-déposer
 
 ## Fonctionnalités principales
 

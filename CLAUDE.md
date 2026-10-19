@@ -32,7 +32,7 @@ The project targets `net8.0-windows7.0` — Windows only, no cross-platform buil
 The bundled GDB (`eScope/tools/gdb`, copied next to the exe) is fetched with `tools/fetch-gdb.ps1`.
 
 `tools/automation/` holds the automation API client (`escope_api.py`), an end-to-end example and a protocol V3
-device simulator over TCP (`sim/sim_v3.py` + a ready workspace): run eScope from `tools/automation/sim` to try
+device simulator over TCP (`sim/sim_v3.py` + a ready workspace): open `tools/automation/sim/sim.escope` to try
 acquisitions and target reads / writes without hardware.
 
 There are no automated tests; verification is done by running the application (the V3 simulator helps).
@@ -41,7 +41,7 @@ There are no automated tests; verification is done by running the application (t
 
 ### Data Flow
 
-1. Workspace loaded from `eScope.json` (devices, traces, channels, layout)
+1. Workspace loaded from a `.escope` file (devices, traces, channels, layout): command-line argument, legacy `eScope.json` of the current folder, else the last one opened
 2. Each `Device` loads symbols (variable name or C expression → memory address), connects via a `Protocol`
 3. A single 50 ms WinForms timer calls `DeviceCtrl.Process()` for each device (protocol frames → `FrameComplete` → channel buffers) then `TraceCtrl.Refresh()` on the current trace
 4. User interactions create `ICommand` objects (undo/redo via `commandMgr`)
@@ -72,7 +72,7 @@ There are no automated tests; verification is done by running the application (t
 
 ### Persistence
 
-Workspace state serialized to `eScope.json` with `System.Text.Json`. The file is created in the working directory on first save and loaded at startup.
+Workspace state serialized to a `.escope` file (JSON, `System.Text.Json`, `eScope.Workspace.cs`); its folder becomes the current directory, so relative paths inside it are relative to the file. *Files > Open...* / drag-and-drop open a `.escope` (eScope restarts on it) or add an `.etrace`.
 
 ### Key Dependencies
 

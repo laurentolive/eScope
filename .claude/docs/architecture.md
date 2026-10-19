@@ -189,7 +189,7 @@ eScopePlot.Refresh()   [50 ms]
 ## Modèle de données
 
 ```
-eScopeModel (eScope.json)
+eScopeModel (fichier .escope)
   ├─ Devices[]
   │   └─ Device: Name, Com, Protocol, SymbolType, SymbolFilePath, GdbFilePath, MapRegex,
   │              SamplingTime, V1ChannelMax, V1DataSize
@@ -202,7 +202,13 @@ eScopeModel (eScope.json)
           └─ Watches[]
 ```
 
-Sérialisation `System.Text.Json` dans `eScope.json` au répertoire courant. Une trace se sauvegarde
+Sérialisation `System.Text.Json` dans un fichier `.escope` (`eScope.Workspace.cs`). Au démarrage : le fichier
+en argument, sinon un `eScope.json` du répertoire courant (ancien format, même contenu), sinon le dernier
+ouvert (`UiSettings.LastWorkspace`), sinon un workspace vide. Le répertoire courant devient le dossier du
+fichier : les chemins relatifs (fichier de symboles) en partent ; *Save Workspace As* vers un autre dossier
+les rend absolus. Ouvrir un autre workspace (menu, glisser-déposer) relance eScope dessus
+(`--wait <pid>` : la nouvelle instance attend la fin de l'ancienne, qui libère ports COM, GDB et serveur
+d'automatisation). Une trace se sauvegarde
 seule en `.etrace` (JSON gzip du modèle `Trace`) ; les devices restent dans le workspace, référencés par nom.
 
 ---
