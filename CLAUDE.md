@@ -96,6 +96,7 @@ Workspace state serialized to `eScope.json` with `System.Text.Json`. The file is
 - `stm32/` — STM32CubeIDE project (NUCLEO-C051C8) with HAL drivers
 - `ra/` — Renesas RA4E1 (FPB) project, V3Id over RTT
 - `SEGGER_RTT/` — SEGGER RTT sources used by the RTT transport
+- `pcsim/` — firmware simulated on PC: firmware built as an x64 DLL (GCC / MSVC, 64 bits addresses, relocation and address check hooks) run by a C# host whose UART driver is relayed to TCP
 
 `BluetoothSerialBridge/` and `WifiTcpBridge/` (repository root) — ESP32 sketches bridging a target UART to Bluetooth SPP / to a Wi-Fi TCP server (port 3333).
 

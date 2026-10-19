@@ -1,8 +1,8 @@
 # Simulation firmware sur PC — Design
 
-> **Statut : phases 1 à 3 implémentées** (adresses 64 bits, hooks cible et codes d'erreur, map MSVC) ;
-> phases 4 (exemple `targetExamples/pcsim/` + host C#) et 5 (tutoriels) à faire.
-> Issue [#1](https://github.com/laurentolive/eScope/issues/1).
+> **Statut : phases 1 à 4 implémentées** (adresses 64 bits, hooks cible et codes d'erreur, map MSVC,
+> exemple [targetExamples/pcsim/](../../targetExamples/pcsim/README.md) : firmware DLL + host C#) ;
+> phase 5 (tutoriels FR / EN) à faire. Issue [#1](https://github.com/laurentolive/eScope/issues/1).
 >
 > Écarts avec le design ci-dessous :
 > - une adresse qui ne tient pas sur 4 octets n'est pas refusée par `ProtocolV1/V2/V3` : seuls les 32 bits
@@ -12,11 +12,18 @@
 >   panneau latéral ;
 > - `ERR_ADDRSIZE` : réarmé aussi à la réouverture de la liaison (firmware corrigé pris en compte sans
 >   éditer le device).
+> - trames d'erreur reçues avant le premier `CMD_CLEAR` de la liaison, ou dans les 200 ms qui suivent un
+>   `CMD_CLEAR`, ignorées : elles peuvent dater d'avant (firmware laissé en erreur par un autre client).
+> - `GdbRemoteBridge` : réponse `g` sur 8 octets (4 octets tronquent `rax` : GDB refusait la cible x86-64 et
+>   lisait la mémoire dans le fichier).
 >
-> Vérifié : `sim_v3.py --addr-size 4|8` (4 combinaisons PC / cible, `ERR_ADDR`, `ERR_ADDRSIZE`), eScope de
-> bout en bout via l'API d'automation (lecture / écriture / acquisition à 0x1_8002_00xx, lecture refusée en
-> ~130 ms, map MSVC), compilation du C V3 / V3Id en 4 et 8 octets (clang, `-Wall -Wextra`). Non vérifié :
-> exécution du C sur PC (pas de toolchain C complète sur la machine de dev), cibles réelles NUCLEO / RA4E1.
+> Vérifié (machine de dev, GCC MSYS2 UCRT64) : `sim_v3.py --addr-size 4|8` (4 combinaisons PC / cible,
+> `ERR_ADDR`, `ERR_ADDRSIZE`) ; exemple `pcsim` (DLL relogée par l'ASLR) avec eScope piloté par l'API
+> d'automation : map GNU et GDB (expressions lues sur la cible), écriture / lecture, adresse refusée en
+> ~130 ms, incohérence 32 / 64 bits, acquisition sans perte, `--speed 5` (axe en temps simulé) ; map MSVC
+> (fichier écrit à la main) ; C V3 / V3Id compilé en 4 et 8 octets ; bridge GDB sur ELF STM32 / RA4E1 / AVR
+> (stub). Non vérifié : build MSVC (`build_msvc.bat` : pas de toolchain MSVC complète), DLL x86, cibles
+> réelles NUCLEO / RA4E1 / Arduino.
 
 ## Objectif
 
