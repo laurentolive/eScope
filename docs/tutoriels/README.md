@@ -18,10 +18,12 @@ des variables en temps réel depuis eScope.
 | 5 | [STM32 en RTT](05-stm32-rtt.md) | NUCLEO-C051C8 | SEGGER RTT par la sonde ST-LINK |
 | 6 | [STM32 en Bluetooth](06-stm32-bluetooth.md) | NUCLEO-C051C8 + ESP32 | série 115200 → Bluetooth |
 | 7 | [STM32 en Wi-Fi / TCP](07-stm32-wifi-tcp.md) | NUCLEO-C051C8 + ESP32 | série 115200 → Wi-Fi TCP |
+| 8 | [Simulation du firmware sur PC](08-simulation-pc.md) | aucune (firmware en DLL) | UART simulée → TCP |
 
 Commencez par le tutoriel de votre carte (2, 3 ou 4) : chacun va du firmware au premier tracé. Le
 tutoriel 1 détaille ensuite l'utilisation d'eScope (channels, enregistrement, mesures, écriture de
-variables). Les tutoriels 5 à 7 reprennent la carte STM32 avec les autres liaisons.
+variables). Les tutoriels 5 à 7 reprennent la carte STM32 avec les autres liaisons. Le tutoriel 8
+exécute le firmware sur le PC, sans carte.
 
 ## Installer eScope (une fois)
 
@@ -61,6 +63,7 @@ une cinquantaine d'octets, soit 8 variables de 32 bits. C'est la valeur choisie 
 | [`targetExamples/ra/FPB_RA4E1`](../../targetExamples/ra/FPB_RA4E1) | projet e² studio, RTT (par défaut) ou UART SCI9 |
 | [`BluetoothSerialBridge`](../../BluetoothSerialBridge) | pont série ↔ Bluetooth pour ESP32 |
 | [`WifiTcpBridge`](../../WifiTcpBridge) | pont série ↔ Wi-Fi TCP pour ESP32 |
+| [`targetExamples/pcsim`](../../targetExamples/pcsim) | firmware compilé en DLL (GCC, `make`) et simulateur `PcSimHost` |
 
 Les captures d'écran de ces tutoriels ont été faites avec eScope 1.3.0. Les courbes viennent d'un
 simulateur qui reproduit les variables des exemples, aux adresses de leurs `.elf`.

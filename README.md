@@ -101,7 +101,9 @@ Then call `eScopeProtocol_Init()` at startup and `eScopeProtocol_Process()` at a
 
 - `arduino/`: ready-to-use `DebugScope` library;
 - `stm32/`: STM32CubeIDE project (NUCLEO-C051C8), UART (ST-LINK virtual COM port or USART1 bridge) or RTT;
-- `ra/`: Renesas RA4E1, RTT or UART (SCI9).
+- `ra/`: Renesas RA4E1, RTT or UART (SCI9);
+- `pcsim/`: firmware simulated on PC: built as a DLL with GCC, run by a simulator whose UART is relayed
+  to TCP (64 bits addresses).
 
 Wireless links go through an ESP32 serial bridge: [`BluetoothSerialBridge/`](BluetoothSerialBridge/)
 (Bluetooth serial port) and [`WifiTcpBridge/`](WifiTcpBridge/) (Wi-Fi TCP).
@@ -142,7 +144,7 @@ Third-party files keep their own license: the SEGGER RTT sources and the ST / Re
 ## Documentation
 
 - [Tutorials](docs/tutorials/README.md): deploying and using eScope on Arduino Nano, STM32 NUCLEO-C051C8 and
-  Renesas FPB-RA4E1 over serial, RTT, Bluetooth and Wi-Fi / TCP
+  Renesas FPB-RA4E1 over serial, RTT, Bluetooth and Wi-Fi / TCP, and firmware simulated on PC
 - [AI / script automation](tools/automation/README.md): automation API (MCP + REST)
 
 Design documents (French):
