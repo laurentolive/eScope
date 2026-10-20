@@ -1,8 +1,13 @@
 # Simulation firmware sur PC — Design
 
-> **Statut : phases 1 à 4 implémentées** (adresses 64 bits, hooks cible et codes d'erreur, map MSVC,
-> exemple [targetExamples/pcsim/](../../targetExamples/pcsim/README.md) : firmware DLL + host C#) ;
-> phase 5 (tutoriels FR / EN) à faire. Issue [#1](https://github.com/laurentolive/eScope/issues/1).
+> **Statut : implémenté** (adresses 64 bits, hooks cible et codes d'erreur, exemple
+> [targetExamples/pcsim/](../../targetExamples/pcsim/README.md) : firmware DLL GCC + host C#, tutoriels
+> `docs/tutoriels/08-simulation-pc.md` / `docs/tutorials/08-pc-simulation.md`).
+> Issue [#1](https://github.com/laurentolive/eScope/issues/1).
+>
+> **MSVC non supporté** (décision du 2026-10-20) : la DLL est compilée avec GCC (MSYS2 UCRT64, `make`),
+> ce qui donne un map GNU et du DWARF pour GDB. Les sections MSVC ci-dessous sont gardées comme trace de
+> l'étude ; le parseur de map MSVC, d'abord écrit, a été retiré.
 >
 > Écarts avec le design ci-dessous :
 > - une adresse qui ne tient pas sur 4 octets n'est pas refusée par `ProtocolV1/V2/V3` : seuls les 32 bits
@@ -20,10 +25,9 @@
 > Vérifié (machine de dev, GCC MSYS2 UCRT64) : `sim_v3.py --addr-size 4|8` (4 combinaisons PC / cible,
 > `ERR_ADDR`, `ERR_ADDRSIZE`) ; exemple `pcsim` (DLL relogée par l'ASLR) avec eScope piloté par l'API
 > d'automation : map GNU et GDB (expressions lues sur la cible), écriture / lecture, adresse refusée en
-> ~130 ms, incohérence 32 / 64 bits, acquisition sans perte, `--speed 5` (axe en temps simulé) ; map MSVC
-> (fichier écrit à la main) ; C V3 / V3Id compilé en 4 et 8 octets ; bridge GDB sur ELF STM32 / RA4E1 / AVR
-> (stub). Non vérifié : build MSVC (`build_msvc.bat` : pas de toolchain MSVC complète), DLL x86, cibles
-> réelles NUCLEO / RA4E1 / Arduino.
+> ~130 ms, incohérence 32 / 64 bits, acquisition sans perte, `--speed 5` (axe en temps simulé) ; C V3 /
+> V3Id compilé en 4 et 8 octets ; bridge GDB sur ELF STM32 / RA4E1 / AVR (stub). Non vérifié : DLL x86,
+> cibles réelles NUCLEO / RA4E1 / Arduino.
 
 ## Objectif
 
@@ -31,8 +35,8 @@ Visualiser dans eScope les variables d'un **firmware exécuté sur PC** comme su
 workspace, mêmes traces, mêmes symboles, sans hardware.
 
 Contexte : un simulateur C# charge le firmware compilé en **DLL**, le schedule et simule le hardware
-(UART, GPIO, interruptions…). La DLL peut être compilée avec **GCC (MinGW)** ou **MSVC** : les deux
-chaînes ne diffèrent que par les symboles et la base de link ; le transport et le protocole sont communs.
+(UART, GPIO, interruptions…). La DLL est compilée avec **GCC (MinGW, MSYS2 UCRT64)** ; l'étude initiale
+couvrait aussi MSVC, abandonné (pas de DWARF, map sans tailles).
 
 Principe directeur : **eScope ne sait pas qu'il parle à une simulation.** Pour lui c'est une cible V3 sur
 TCP, avec une taille d'adresse donnée. Tout ce qui est propre au PC (relocation de la DLL, validité des
@@ -48,7 +52,7 @@ eScope (PC)                         simulateur C# (process séparé)
 Device  Protocol V3, AddressSize 8  ┌ relais TCP ⇄ UART simulée (TcpListener :47700)
   │                                 │     │ octets reçus injectés dans le contexte du scheduler
 ComTcp  "TCP:127.0.0.1,47700" ──────┘     ▼   (dans le driver UART simulé)
-                                    UART simulée ⇄ firmware.dll (GCC ou MSVC)
+                                    UART simulée ⇄ firmware.dll (GCC)
                                                    eScopeTransportUart (inchangé)
                                                    eScopeProtocolV3 + hooks PC :
                                                      ESCOPE_ADDR_TO_PTR   (relocation)
@@ -269,7 +273,7 @@ donc en temps simulé, quelle que soit la vitesse de la simulation.
 - Simulation plus rapide que le temps réel : plus de trames par seconde, absorbées par la file de trames de
   `ProtocolV3` (limite : débit du socket et du rendu) ; option « baudrate simulé » du relais pour rester
   représentatif.
-- Simulation en pause (breakpoint Visual Studio) : plus de trames → `Timeout` au bout de 1 s, signalé sur
+- Simulation en pause (breakpoint dans le simulateur) : plus de trames → `Timeout` au bout de 1 s, signalé sur
   les canaux, reconfiguration à la reprise. C'est le comportement voulu : une perte de com est signalée.
 
 ## 6. Point d'échantillonnage
@@ -292,9 +296,9 @@ UART simulé arrivent dans le contexte du scheduler (§1).
   sont lus via `GdbRemoteBridge` (adresses 64 bits, §2). Le `g` court du bridge reste valable (amd64 :
   le reste est demandé par `p`).
 
-### MSVC
+### MSVC (abandonné)
 
-Pas de DWARF : `SymbolGDB` inutilisable avec `cl`.
+Non supporté. Étude conservée : pas de DWARF, `SymbolGDB` inutilisable avec `cl`.
 
 1. **Map MSVC** (`/MAP`), phase 1 : nouveau format détecté dans `SymbolMap` (ligne
    `Preferred load address is`). Sections « Publics by Value » et « Static symbols » :
@@ -317,8 +321,8 @@ Pas de DWARF : `SymbolGDB` inutilisable avec `cl`.
 |---|---|---|
 | 1 | eScope : adresses `UInt64`, `Device.AddressSize`, format V3 sur n octets + `ADDR64_FLAG`, `SymbolMap` 64 bits | `sim_v3.py --addr-size 8` (nouvelle option : base RAM au-delà de 4 Go) ; non-régression `--addr-size 4` et cibles réelles |
 | 2 | Cible : `ESCOPE_PROTOCOL_ADDRESS_SIZE` effectif, `ADDR64_FLAG`, `ESCOPE_ADDR_TO_PTR`, `ESCOPE_ADDR_IS_VALID`, `ERR_ADDR` / `ERR_ADDRSIZE` (V3 et V3Id) ; eScope : traitement des codes d'erreur | `sim_v3.py` émet `ERR_ADDR` hors RAM et `ERR_ADDRSIZE` sur taille incohérente ; NUCLEO / RA4E1 inchangés |
-| 3 | Symboles : map MSVC | maps MSVC x86 / x64 de l'exemple |
-| 4 | Exemple `targetExamples/pcsim/` : firmware C (build MSVC et MinGW, DLL x86 et x64), `eScopeCfg.h` PC, petit host C# (scheduler 1 ms + driver UART simulé relayé en TCP), workspace | les 4 combinaisons chaîne × archi : lecture, écriture, Watch, adresse invalide, relocation forcée (`/DYNAMICBASE` + base occupée) |
+| 3 | ~~Symboles : map MSVC~~ (abandonné) | — |
+| 4 | Exemple `targetExamples/pcsim/` : firmware C (GCC, `Makefile`), `eScopeCfg.h` PC, petit host C# (scheduler 1 ms + driver UART simulé relayé en TCP), workspace | DLL relogée par l'ASLR : lecture, écriture, adresse invalide, map GNU et GDB |
 | 5 | Docs : `api.md` (format filaire, `ERR_ADDR`, `IProtocol`), `architecture.md`, tutoriel FR / EN | — |
 | option | `SymbolPdb` (dbghelp) ; `eScopeTransportTcp.c` serveur pour un firmware PC autonome | — |
 
@@ -332,3 +336,4 @@ Le portage Linux (`worktree-linux-port-core`) touche les mêmes fichiers (`IProt
 - **Pas de commande d'identification** : incohérence de taille d'adresse détectée par `ADDR64_FLAG`,
   signalée par `ERR_ADDRSIZE`.
 - Relais UART ⇄ TCP **dans la couche driver UART du simulateur**.
+- **GCC seulement** (MSVC abandonné), firmware généré par un `Makefile` (MSYS2 UCRT64).

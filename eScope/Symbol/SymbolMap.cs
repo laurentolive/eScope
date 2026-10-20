@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace eScope.Symbol
@@ -7,8 +7,6 @@ namespace eScope.Symbol
     /// Symbols read from a map file. Format detected from the content, unless a custom regex is given:
     ///   - GNU ld map ("Linker script and memory map"): "0xADDR  name" symbol lines of the memory map, size taken from
     ///     the input section of the variable (.bss.name / .data.name... with -fdata-sections)
-    ///   - MSVC map ("Preferred load address is"): "Publics by Value" and "Static symbols" lines, address of the
-    ///     Rva+Base column (link address), functions and C++ decorated names skipped, leading '_' removed on x86
     ///   - "FormatGNU" (first line): "0xADDR  _name" lines, name without the leading '_' added by the generator
     ///   - otherwise: "0xADDR name" or "name 0xADDR" lines
     /// Custom regex: groups "var" and "address" (hex, 0x optional), optional "size" in bytes (decimal or 0x hex).
@@ -26,10 +24,6 @@ namespace eScope.Symbol
         static readonly Regex GnuSection = new(@"^ (?<sec>\.\S+)(?:\s+0x(?<address>[0-9A-Fa-f]+)\s+0x(?<size>[0-9A-Fa-f]+)\s+\S.*)?$");
         static readonly Regex GnuSectionPlace = new(@"^\s+0x(?<address>[0-9A-Fa-f]+)\s+0x(?<size>[0-9A-Fa-f]+)\s+\S");
         const string GnuMemoryMap = "Linker script and memory map";
-        // MSVC map: " 0003:00000a40       motor_cfg        0000000180005a40     main.obj" (" f " flag for a function)
-        static readonly Regex MsvcSymbol = new(
-            @"^\s*[0-9A-Fa-f]{4}:[0-9A-Fa-f]{8}\s+(?<var>\S+)\s+(?<address>[0-9A-Fa-f]{8,16})\s+(?<flags>(?:[fi]\s+)*)\S");
-        const string MsvcLoadAddress = "Preferred load address is";
 
         public Dictionary<string, SymbolData> Symbols { get; } = new();
         private readonly string DeviceName;
@@ -50,8 +44,6 @@ namespace eScope.Symbol
                     ParseCustom(lines, custom);
                 else if (lines.Any(l => l.StartsWith(GnuMemoryMap)))
                     ParseGnu(lines);
-                else if (lines.Any(l => l.TrimStart().StartsWith(MsvcLoadAddress)))
-                    ParseMsvc(lines);
                 else
                     ParseGeneric(lines, stripUnderscore: lines.Length > 0 && lines[0].Trim() == "FormatGNU");
                 LogMsg.Info($"{deviceName}: {Symbols.Count} symbols read from {Path.GetFileName(path)}");
@@ -137,24 +129,6 @@ namespace eScope.Symbol
                 string address = m.Groups["address"].Value;
                 bool ownSection = section.EndsWith("." + name) && ParseAddress(address) == ParseAddress(sectionAddress);
                 Add(name, address, ownSection ? sectionSize : 0);
-            }
-        }
-
-        void ParseMsvc(string[] lines)
-        {
-            // x86 (32 bits load address): C names decorated with a leading '_'
-            string load = lines.First(l => l.TrimStart().StartsWith(MsvcLoadAddress)).Trim()[MsvcLoadAddress.Length..].Trim();
-            bool x86 = ParseAddress(load) <= UInt32.MaxValue;
-            int i = Array.FindIndex(lines, l => l.Contains("Publics by Value"));
-            for (i++; (i > 0) && (i < lines.Length); i++)
-            {
-                Match m = MsvcSymbol.Match(lines[i]);
-                if (!m.Success || m.Groups["flags"].Value.Contains('f')) continue;
-                string name = m.Groups["var"].Value;
-                if (name.StartsWith('?') || name.StartsWith("__imp_") || ParseAddress(m.Groups["address"].Value) == 0) continue;
-                if (x86 && name.Length > 1 && name[0] == '_')
-                    name = name[1..];
-                Add(name, m.Groups["address"].Value, 0);
             }
         }
 

@@ -48,11 +48,9 @@
  * Target memory access
  ******************************************************************************/
 
-/* link base of the DLL: --image-base (gcc) / /BASE (MSVC) of the build scripts */
-#if defined(_WIN64) || defined(__x86_64__)
-    #define SIM_LINK_BASE  0x180000000ULL
-#else
-    #define SIM_LINK_BASE  0x10000000UL
+/* link base of the DLL: LINK_BASE of the Makefile (--image-base), given with -D */
+#ifndef SIM_LINK_BASE
+    #error "SIM_LINK_BASE: link base of the DLL, defined by the Makefile"
 #endif
 
 /* link address -> loaded address: __ImageBase is the base the DLL is loaded at */
