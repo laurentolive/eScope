@@ -127,7 +127,7 @@ namespace eScope.Symbol
                 if (!m.Success) continue;
                 string name = m.Groups["var"].Value;
                 string address = m.Groups["address"].Value;
-                bool ownSection = section.EndsWith("." + name) && ParseHex(address) == ParseHex(sectionAddress);
+                bool ownSection = section.EndsWith("." + name) && ParseAddress(address) == ParseAddress(sectionAddress);
                 Add(name, address, ownSection ? sectionSize : 0);
             }
         }
@@ -150,6 +150,10 @@ namespace eScope.Symbol
 
         static int ParseHex(string s)
             => int.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int v) ? v : 0;
+
+        // 64 bits: addresses of a PC (simulation) build
+        static UInt64 ParseAddress(string s)
+            => UInt64.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out UInt64 v) ? v : 0;
 
         static int ParseNumber(string s)
             => s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? ParseHex(s[2..])

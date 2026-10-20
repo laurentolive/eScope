@@ -257,13 +257,13 @@ namespace eScope.Protocol
 
             hCom.Close();
         }
-        public void ReadMem(UInt32 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
+        public void ReadMem(UInt64 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
         {
             Console.WriteLine($"ProtocolV2 Read Mem 0x{address:X}:{size} not available on protocolV2");
             onReadFailed?.Invoke();
         }
         public bool IsConnected => State == State_t.capturing;
-        public uint ReadMemRegister(UInt32 address, int size)
+        public uint ReadMemRegister(UInt64 address, int size)
         {
             if(size > 32)
             {
@@ -271,7 +271,7 @@ namespace eScope.Protocol
             }
             Console.WriteLine($"ProtocolV2 Register Read Mem 0x{address:X}:{size}");
             ReadMemData d = new ReadMemData();
-            d.address = address;
+            d.address = (UInt32)address; // 32 bits addresses on the wire
             d.size = size/8;
             d.oneShot = false;
             d.token = readMemToken++;
@@ -300,7 +300,7 @@ namespace eScope.Protocol
             }
         }
 
-        public void WriteMem(UInt32 address, int size, UInt64 data) // /!\ Call be timer thread and com thread
+        public void WriteMem(UInt64 address, int size, UInt64 data) // /!\ Call be timer thread and com thread
         {
             Console.WriteLine($"ProtocolV2 Write Mem 0x{address:X}:{size} not available on protocolV2");
         }

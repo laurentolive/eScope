@@ -249,7 +249,7 @@ namespace eScope
             string addrTest = textBoxAddress.Text;
             if (addrTest.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 addrTest = addrTest.Substring(2);
-            if (UInt32.TryParse(addrTest, System.Globalization.NumberStyles.HexNumber, null, out _))
+            if (UInt64.TryParse(addrTest, System.Globalization.NumberStyles.HexNumber, null, out _))
                 textBoxAddress.BackColor = Theme.FieldBack(true);
             else
             {

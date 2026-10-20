@@ -102,7 +102,9 @@ Appeler ensuite `eScopeProtocol_Init()` au démarrage et `eScopeProtocol_Process
 
 - `arduino/` : bibliothèque `DebugScope` prête à l'emploi ;
 - `stm32/` : projet STM32CubeIDE (NUCLEO-C051C8), UART (port COM virtuel du ST-LINK ou pont USART1) ou RTT ;
-- `ra/` : Renesas RA4E1, RTT ou UART (SCI9).
+- `ra/` : Renesas RA4E1, RTT ou UART (SCI9) ;
+- `pcsim/` : firmware simulé sur PC, compilé en DLL avec GCC et exécuté par un simulateur dont l'UART
+  est relayée en TCP (adresses 64 bits).
 
 Les liaisons sans fil passent par un pont série ESP32 : [`BluetoothSerialBridge/`](BluetoothSerialBridge/)
 (port série Bluetooth) et [`WifiTcpBridge/`](WifiTcpBridge/) (Wi-Fi TCP).
@@ -145,7 +147,7 @@ Seul le texte anglais de [LICENSE.md](LICENSE.md) fait foi ; ce résumé est don
 ## Documentation
 
 - [Tutoriels](docs/tutoriels/README.md) : déployer et utiliser eScope sur Arduino Nano, STM32 NUCLEO-C051C8 et
-  Renesas FPB-RA4E1 en série, RTT, Bluetooth et Wi-Fi / TCP
+  Renesas FPB-RA4E1 en série, RTT, Bluetooth et Wi-Fi / TCP, et firmware simulé sur PC
 - [Pilotage par IA / script](tools/automation/README.fr.md) : API d'automatisation (MCP + REST)
 
 Documents de conception (en français) :

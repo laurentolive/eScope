@@ -123,12 +123,16 @@ namespace eScope
             textBoxV1Channels.Text = device.V1ChannelMax.ToString();
             textBoxV1DataSize.Text = device.V1DataSize.ToString();
             panelV1.Visible = device.Protocol == "V1";
+            comboBoxAddressSize.Items.AddRange(new object[] { "32 bits", "64 bits" });
+            comboBoxAddressSize.SelectedIndex = device.AddressSize == 8 ? 1 : 0;
+            panelV3.Visible = device.Protocol == "V3";
             radioSymbolUpdate();
             IsValid();
         }
         private void comboBoxProtocol_SelectedIndexChanged(object sender, EventArgs e)
         {
             panelV1.Visible = comboBoxProtocol.Text == "V1";
+            panelV3.Visible = comboBoxProtocol.Text == "V3";
         }
 
         private void radioSymbolUpdate()
@@ -139,6 +143,9 @@ namespace eScope
 
         readonly Panel panelMapRegex = new();
         readonly Panel panelGdbPath = new();
+        // V3: address bytes on the wire, 64 bits for a firmware simulated on a 64 bits PC
+        readonly Panel panelV3 = new();
+        readonly ComboBox comboBoxAddressSize = new() { DropDownStyle = ComboBoxStyle.DropDownList };
 
         // common dialog layout: one column, the rows of the link type and of the symbol source shown with it
         void BuildLayout()
@@ -159,6 +166,8 @@ namespace eScope
             c.Group(panelV1)
                 .Row(labelV1Channels, textBoxV1Channels)
                 .Row(labelV1DataSize, textBoxV1DataSize);
+            c.Group(panelV3)
+                .Row("Addresses", comboBoxAddressSize);
             c.Section("Link")
                 .Options(new Label { Text = "Type" }, radioButtonSerial, radioButtonTCP, radioButtonRTT);
             c.Group(panelSerial)
@@ -383,6 +392,7 @@ namespace eScope
                     Dev.V1ChannelMax = int.Parse(textBoxV1Channels.Text);
                     Dev.V1DataSize = int.Parse(textBoxV1DataSize.Text);
                 }
+                Dev.AddressSize = (Dev.Protocol == "V3" && comboBoxAddressSize.SelectedIndex == 1) ? 8 : 4;
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();

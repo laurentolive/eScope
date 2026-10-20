@@ -91,7 +91,7 @@ namespace eScope.Plot
         public List<UInt64> Y { get; set; } = new List<UInt64>(1);
         public string Symbol { get; set; } = string.Empty;
         public string Device { get; set; } = string.Empty;
-        public UInt32 Address { get; set; } = 0;
+        public UInt64 Address { get; set; } = 0;
         public List<LostData> Lost { get; set; } = new List<LostData>();
         public Channel()
         {

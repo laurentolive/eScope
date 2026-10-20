@@ -18,7 +18,7 @@ namespace eScope.Symbol.Gdb
         class MemRequest
         {
             public bool Write;
-            public UInt32 Address;
+            public UInt64 Address;
             public int Size; // bytes, 1..8
             public UInt64 Data;
             public readonly TaskCompletionSource<UInt64?> Done = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -70,7 +70,7 @@ namespace eScope.Symbol.Gdb
             }
         }
 
-        UInt64? Access(bool write, UInt32 address, int size, UInt64 data = 0)
+        UInt64? Access(bool write, UInt64 address, int size, UInt64 data = 0)
         {
             if (!Ready || !MemoryAvailable)
                 return null;
@@ -158,7 +158,9 @@ namespace eScope.Symbol.Gdb
             if (p.StartsWith("qSupported")) return $"PacketSize={4096:x};QStartNoAckMode+";
             if (p == "QStartNoAckMode") { noAck = true; return "OK"; }
             if (p == "?") return "S05";
-            if (p == "g") return "00000000";  // shorter than the register set: the rest is asked with 'p'
+            // shorter than the register set: the rest is asked with 'p'. 8 bytes: whole first register(s) on
+            // every architecture (x86-64 rax: a 4 bytes reply is refused, "Truncated register 0")
+            if (p == "g") return "0000000000000000";
             if (p.StartsWith("p")) return "00000000";
             if (p.StartsWith("m")) return ReadMemory(p.Substring(1));
             if (p.StartsWith("M")) return WriteMemory(p.Substring(1));
@@ -175,7 +177,7 @@ namespace eScope.Symbol.Gdb
         // m addr,length : one device access at most, GDB asks again for the rest
         string ReadMemory(string args)
         {
-            if (!TryParseRange(args, out UInt32 address, out int length))
+            if (!TryParseRange(args, out UInt64 address, out int length))
                 return "E01";
             int size = Math.Min(length, MEM_ACCESS_MAX);
             UInt64? value = Access(false, address, size);
@@ -191,7 +193,7 @@ namespace eScope.Symbol.Gdb
         string WriteMemory(string args)
         {
             int colon = args.IndexOf(':');
-            if (colon < 0 || !TryParseRange(args.Substring(0, colon), out UInt32 address, out int length))
+            if (colon < 0 || !TryParseRange(args.Substring(0, colon), out UInt64 address, out int length))
                 return "E01";
             string hex = args.Substring(colon + 1);
             if (hex.Length < length * 2)
@@ -202,22 +204,21 @@ namespace eScope.Symbol.Gdb
                 UInt64 data = 0;
                 for (int i = 0; i < size; i++)
                     data |= (UInt64)Convert.ToByte(hex.Substring((offset + i) * 2, 2), 16) << (8 * i);
-                if (Access(true, address + (UInt32)offset, size, data) == null)
+                if (Access(true, address + (UInt64)offset, size, data) == null)
                     return "E01";
             }
             return "OK";
         }
 
-        static bool TryParseRange(string s, out UInt32 address, out int length)
+        static bool TryParseRange(string s, out UInt64 address, out int length)
         {
             address = 0; length = 0;
             string[] parts = s.Split(',');
             if (parts.Length != 2
-                || !UInt64.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out UInt64 a)
+                || !UInt64.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out address)
                 || !int.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out length)
                 || (length <= 0))
                 return false;
-            address = (UInt32)a; // 32 bits addresses on the wire (AVR data space 0x80xxxx: truncated by the target)
             return true;
         }
 

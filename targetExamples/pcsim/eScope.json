@@ -1,0 +1,35 @@
+{
+  "Devices": [
+    {
+      "Name": "PcSim",
+      "Com": "TCP:127.0.0.1,47700",
+      "SymbolFilePath": ".\\build\\firmware.map",
+      "GdbFilePath": "",
+      "MapRegex": "",
+      "Protocol": "V3",
+      "SymbolType": "map",
+      "SamplingTime": 1,
+      "V1ChannelMax": 4,
+      "V1DataSize": 16,
+      "AddressSize": 8
+    }
+  ],
+  "Traces": [
+    {
+      "Name": "Motor",
+      "XPos": 0,
+      "XWidth": 2000,
+      "XGridDecadeNb": 100,
+      "XGridDecadeVal": 1,
+      "LegendWidth": 100,
+      "DarkMode": 0,
+      "signalNb": 0,
+      "Channels": [],
+      "Markers": [],
+      "Deltas": [],
+      "Annotations": [],
+      "DataMarkers": [],
+      "Watches": []
+    }
+  ]
+}

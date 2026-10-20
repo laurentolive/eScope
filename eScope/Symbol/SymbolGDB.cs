@@ -7,7 +7,7 @@ namespace eScope.Symbol
     // value of a C expression for the watch window
     public class ExprValue
     {
-        public UInt32? Address;   // lvalue: value read in target memory by the device protocol
+        public UInt64? Address;   // lvalue: value read in target memory by the device protocol
         public int Size;          // bits
         public string? Text;      // value computed by GDB (not an lvalue, or larger than 64 bits)
         public string? Error;
@@ -295,7 +295,7 @@ namespace eScope.Symbol
             {
                 MiResult addr = await gdb.EvaluateAsync(AddressOf(expr)).ConfigureAwait(false);
                 if (TryValue(addr, out UInt64 address))
-                    return new ExprValue { Address = (UInt32)address, Size = (int)bytes * 8 };
+                    return new ExprValue { Address = address, Size = (int)bytes * 8 };
                 if (!addr.Error.StartsWith("Attempt to take address"))
                     return new ExprValue { Error = addr.Error };
             }

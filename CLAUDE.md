@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [.claude/docs/constraints.md](.claude/docs/constraints.md) — ce qu'on ne fait pas, protocoles dépréciés
 - [.claude/docs/rtt-transport.md](.claude/docs/rtt-transport.md) — transport SEGGER RTT (ComRtt + bridge Python)
 - [.claude/docs/automation.md](.claude/docs/automation.md) — pilotage par IA / script (serveur MCP + REST)
+- [.claude/docs/pc-simulation.md](.claude/docs/pc-simulation.md) — design : firmware simulé sur PC (DLL GCC), adresses 64 bits, relocation
 
 ## Project Overview
 
@@ -95,6 +96,7 @@ Workspace state serialized to a `.escope` file (JSON, `System.Text.Json`, `eScop
 - `stm32/` — STM32CubeIDE project (NUCLEO-C051C8) with HAL drivers
 - `ra/` — Renesas RA4E1 (FPB) project, V3Id over RTT
 - `SEGGER_RTT/` — SEGGER RTT sources used by the RTT transport
+- `pcsim/` — firmware simulated on PC: firmware built as an x64 DLL with GCC (MSYS2 UCRT64, `make`; 64 bits addresses, relocation and address check hooks) run by a C# host whose UART driver is relayed to TCP
 
 `BluetoothSerialBridge/` and `WifiTcpBridge/` (repository root) — ESP32 sketches bridging a target UART to Bluetooth SPP / to a Wi-Fi TCP server (port 3333).
 

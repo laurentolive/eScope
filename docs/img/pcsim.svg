@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="400" viewBox="0 0 960 400" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Simulation du firmware sur PC : eScope, le simulateur et le firmware compilé en DLL">
+<title>Simulation du firmware sur PC : eScope, le simulateur et le firmware compilé en DLL</title>
+<defs><marker id="a2f9e44" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a1971c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="ad9480f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d9480f"/></marker><marker id="a5b6573" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6573"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="30" y="60" width="200" height="170" rx="10" fill="#eef2f7" stroke="#3d4a5c" stroke-width="2"/>
+<rect x="45" y="75" width="170" height="104" rx="6" fill="#ffffff" stroke="#c9d1db" stroke-width="1.5"/>
+<text x="130" y="100" font-size="13" fill="#1d2430" text-anchor="middle" font-weight="700">eScope</text>
+<text x="130" y="120" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">Device « PcSim »</text>
+<text x="130" y="138" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">TCP 127.0.0.1 : 47700</text>
+<text x="130" y="156" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">V3, adresses 64 bits</text>
+<text x="130" y="210" font-size="12" fill="#5b6573" text-anchor="middle" font-weight="normal">PC Windows</text>
+<polyline points="232,145 290,145" fill="none" stroke="#2f9e44" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6" marker-start="url(#a2f9e44)" marker-end="url(#a2f9e44)"/>
+<rect x="239" y="120" width="44" height="18" rx="9" fill="#fff" stroke="#2f9e44" stroke-width="1.5"/>
+<text x="261" y="133" font-size="11" fill="#2f9e44" text-anchor="middle" font-weight="600">TCP</text>
+<rect x="295" y="40" width="250" height="250" rx="12" fill="#f8f9fa" stroke="#3d4a5c" stroke-width="2"/>
+<text x="420" y="64" font-size="13" fill="#1d2430" text-anchor="middle" font-weight="700">Simulateur (PcSimHost ou le vôtre)</text>
+<text x="420" y="82" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">process C#</text>
+<rect x="315" y="100" width="210" height="80" rx="8" fill="#e7f5ff" stroke="#1971c2" stroke-width="1.5"/>
+<text x="420" y="124" font-size="12" fill="#1d2430" text-anchor="middle" font-weight="600">Driver UART simulé</text>
+<text x="420" y="144" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">TcpListener : 47700</text>
+<text x="420" y="162" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">octets reçus → file</text>
+<rect x="315" y="195" width="210" height="80" rx="8" fill="#fff4e6" stroke="#d9480f" stroke-width="1.5"/>
+<text x="420" y="219" font-size="12" fill="#1d2430" text-anchor="middle" font-weight="600">Scheduler</text>
+<text x="420" y="239" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">1 tick = 1 ms simulée</text>
+<text x="420" y="257" font-size="11" fill="#5b6573" text-anchor="middle" font-weight="normal">UART Rx puis sim_Tick</text>
+<polyline points="420,182 420,193" fill="none" stroke="#5b6573" stroke-width="2" marker-end="url(#a5b6573)"/>
+<rect x="620" y="40" width="310" height="290" rx="12" fill="#2b2f36" stroke="#000000" stroke-width="2"/>
+<text x="775" y="64" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="700">firmware.dll (GCC)</text>
+<text x="775" y="82" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">chargée par le simulateur, relogée (ASLR)</text>
+<rect x="640" y="98" width="270" height="58" rx="6" fill="#3a404a" stroke="#5b6573" stroke-width="1.5"/>
+<text x="775" y="120" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">simHw.c : carte simulée</text>
+<text x="775" y="138" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">sim_Init · sim_Tick · sim_UartRx</text>
+<rect x="640" y="166" width="270" height="58" rx="6" fill="#3a404a" stroke="#5b6573" stroke-width="1.5"/>
+<text x="775" y="188" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">app.c : code de la cible</text>
+<text x="775" y="206" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">eScopeProtocol_Process()</text>
+<rect x="640" y="234" width="270" height="80" rx="6" fill="#3a404a" stroke="#5b6573" stroke-width="1.5"/>
+<text x="775" y="256" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">eScopeProtocolV3</text>
+<text x="775" y="274" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">ESCOPE_ADDR_TO_PTR : relocation</text>
+<text x="775" y="292" font-size="11" fill="#c7ccd4" text-anchor="middle" font-weight="normal">ESCOPE_ADDR_IS_VALID : contrôle</text>
+<polyline points="527,235 638,127" fill="none" stroke="#d9480f" stroke-width="2.5" marker-end="url(#ad9480f)"/>
+<text x="590" y="196" font-size="11" fill="#d9480f" text-anchor="middle" font-weight="600">appels</text>
+<polyline points="638,112 527,112" fill="none" stroke="#1971c2" stroke-width="2.5" marker-end="url(#a1971c2)"/>
+<text x="582" y="104" font-size="11" fill="#1971c2" text-anchor="middle" font-weight="600">octets émis</text>
+<text x="480" y="370" font-size="12" fill="#5b6573" text-anchor="middle" font-weight="normal" font-style="italic">eScope ne sait pas que la cible est simulée : même protocole, mêmes symboles (map GNU ou GDB)</text>
+</svg>

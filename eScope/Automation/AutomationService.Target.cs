@@ -16,7 +16,7 @@ namespace eScope.Automation
         enum ValueKind { Signed, Unsigned, Hex, Float, Double }
 
         // resolved expression: an address to read / write, or a value text computed by GDB
-        record Target(DeviceCtrl Dev, string Expression, uint Address, int SizeBits, ValueKind Kind, string? Type, string? Text);
+        record Target(DeviceCtrl Dev, string Expression, UInt64 Address, int SizeBits, ValueKind Kind, string? Type, string? Text);
 
         // the link is opened on demand (in background, TCP connection bounded to 2 s, retried after 1 s)
         const int LinkWaitMs = 3500;
@@ -127,7 +127,7 @@ namespace eScope.Automation
         }
 
         // one-shot read: the value arrives in a later frame, the callbacks run in Device.Process (UI thread)
-        async Task<ulong> ReadRaw(DeviceCtrl dev, uint address, int sizeBits)
+        async Task<ulong> ReadRaw(DeviceCtrl dev, UInt64 address, int sizeBits)
         {
             var tcs = new TaskCompletionSource<ulong>(TaskCreationOptions.RunContinuationsAsynchronously);
             await ui.InvokeAsync(() =>
@@ -190,7 +190,7 @@ namespace eScope.Automation
         }
 
         // JSON number or string ("0x20000010", "536870928")
-        static uint ParseAddress(JsonElement address)
+        static UInt64 ParseAddress(JsonElement address)
         {
             string text = address.ValueKind switch
             {
@@ -199,16 +199,16 @@ namespace eScope.Automation
                 _ => string.Empty,
             };
             bool ok = text.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                ? uint.TryParse(text[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint a)
-                : uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out a);
+                ? UInt64.TryParse(text[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out UInt64 a)
+                : UInt64.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out a);
             if (!ok)
-                throw new AutomationException(AutomationError.InvalidArgument, $"address '{text}': 32-bit address, decimal or 0x hexadecimal");
+                throw new AutomationException(AutomationError.InvalidArgument, $"address '{text}': address, decimal or 0x hexadecimal");
             return a;
         }
 
         public async Task<VariableValue> ReadMemory(string? device, JsonElement addressArg, int sizeBits)
         {
-            uint address = ParseAddress(addressArg);
+            UInt64 address = ParseAddress(addressArg);
             CheckAccessSize(sizeBits);
             var dev = await ConnectedDevice(device);
             var t = new Target(dev, FormatAddress(address), address, sizeBits, ValueKind.Hex, null, null);
@@ -235,7 +235,7 @@ namespace eScope.Automation
         public async Task<VariableValue> WriteMemory(string? device, JsonElement addressArg, int sizeBits, JsonElement value)
         {
             CheckWriteAllowed();
-            uint address = ParseAddress(addressArg);
+            UInt64 address = ParseAddress(addressArg);
             CheckAccessSize(sizeBits);
             var dev = await ConnectedDevice(device);
             var t = new Target(dev, FormatAddress(address), address, sizeBits, ValueKind.Hex, null, null);

@@ -224,16 +224,16 @@ namespace eScope.Protocol
             hCom?.Close();
         }
 
-        public void WriteMem(UInt32 address, int size, UInt64 data) { }
-        public void ReadMem(UInt32 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null) { onReadFailed?.Invoke(); }
+        public void WriteMem(UInt64 address, int size, UInt64 data) { }
+        public void ReadMem(UInt64 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null) { onReadFailed?.Invoke(); }
         public bool IsConnected => State == State_t.capturing;
 
-        public uint ReadMemRegister(UInt32 address, int size)
+        public uint ReadMemRegister(UInt64 address, int size)
         {
             Console.WriteLine($"ProtocolV1 Register 0x{address:X}:{size}");
             var rmd = new ReadMemData
             {
-                address = address,
+                address = (UInt32)address, // 32 bits addresses on the wire
                 size = size / 8,
                 oneShot = false,
                 token = readMemToken++

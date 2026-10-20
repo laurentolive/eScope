@@ -30,6 +30,8 @@ namespace eScope
         public double SamplingTime { get; set; }
         public int V1ChannelMax { get; set; }
         public int V1DataSize { get; set; }
+        // address bytes on the wire (V3): 4, or 8 for a 64 bits target (firmware simulated on PC)
+        public int AddressSize { get; set; }
 
         public Device()
         {
@@ -43,6 +45,7 @@ namespace eScope
             SamplingTime = 1.0;
             V1ChannelMax = 4;
             V1DataSize = 2;
+            AddressSize = 4;
         }
     }
 
@@ -103,11 +106,12 @@ namespace eScope
                 LogMsg.Info($"{Data.Name}: symbol folder not found: {symbolDir}");
             }
 
-            Protocol = IProtocol.New(Data.Protocol, Data.Com);
+            Protocol = IProtocol.New(Data.Protocol, Data.Com, Data.AddressSize);
             if (Protocol != null)
             {
                 Protocol.FrameComplete += OnFrameComplete;
                 Protocol.Timeout += OnTimeout;
+                Protocol.Error += msg => LogMsg.Info($"{Data.Name}: {msg}");
             }
 
             // new protocol: the old tokens are not valid any more
@@ -289,7 +293,7 @@ namespace eScope
                 Console.WriteLine($"Symbol not resolved {c.SignalBase.Name} (target not connected?)");
                 return false;
             }
-            uint uiNewAddress = Utils.strToAddress(sd.Address);
+            UInt64 uiNewAddress = Utils.strToAddress(sd.Address);
             int size = sd.Size > 0 ? sd.Size : c.SignalBase.Size; // size unknown (map without size): the channel's
             if ((c.SignalBase.Address == uiNewAddress)
                 && (c.SignalBase.Size == size)
@@ -393,11 +397,11 @@ namespace eScope
             recording = false;
             Protocol?.Stop();
         }
-        public void WriteMem(UInt32 address, int size, UInt64 data)
+        public void WriteMem(UInt64 address, int size, UInt64 data)
         {
             Protocol?.WriteMem(address, size, data);
         }
-        public void ReadMem(UInt32 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
+        public void ReadMem(UInt64 address, int size, Action<UInt64> onReadComplete, Action? onReadFailed = null)
         {
             if (Protocol == null)
                 onReadFailed?.Invoke();
